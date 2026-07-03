@@ -1,0 +1,122 @@
+/**
+ * landing.css
+ * The marketing/entry page. No camera logic here — just a hero,
+ * a static (non-animated) film-strip mockup built from the same
+ * .film-strip component in strip.css, and a three-step explainer.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 20px 60px;
+}
+
+.hero {
+  display: flex;
+  gap: 56px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  max-width: 1000px;
+  margin-bottom: 90px;
+}
+
+.hero-copy {
+  max-width: 420px;
+  text-align: left;
+}
+
+.hero-copy .title {
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.hero-copy .tagline {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--cream-dim);
+  margin: 0 0 32px;
+}
+
+.hero-copy .cta-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Static mockup strip — same markup/classes as the live booth,
+   just pre-filled with placeholder frames instead of real photos. */
+.hero-strip-preview .film-strip {
+  transform: rotate(2deg);
+}
+.hero-strip-preview .frame-slot {
+  background:
+    linear-gradient(135deg, #d8cba3, #c9bfa0);
+}
+.hero-strip-preview .frame-slot .mock-figure {
+  width: 34%;
+  height: 60%;
+  border-radius: 50% 50% 45% 45%;
+  background: rgba(26, 20, 16, 0.18);
+}
+
+.how-it-works {
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+}
+
+.how-it-works h2 {
+  font-family: var(--font-label);
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+  margin-bottom: 36px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
+  gap: 28px;
+}
+
+.step {
+  background: var(--shadow);
+  border: 1px solid rgba(139, 111, 71, 0.3);
+  border-radius: 12px;
+  padding: 26px 22px;
+  text-align: left;
+}
+
+.step .step-number {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.step h3 {
+  font-family: var(--font-label);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+  color: var(--cream);
+}
+
+.step p {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--brass-light);
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .steps { grid-template-columns: 1fr; }
+  .hero-copy { text-align: center; }
+  .hero-copy .title { text-align: center; }
+  .hero-copy .cta-row { justify-content: center; }
+}

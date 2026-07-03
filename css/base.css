@@ -1,0 +1,105 @@
+/**
+ * base.css
+ * Reset + typography shared by every page. Page-specific layout
+ * lives in landing.css / booth.css instead.
+ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 900px 600px at 50% -10%, rgba(232, 196, 104, 0.08), transparent 60%),
+    var(--darkroom);
+  color: var(--cream);
+  font-family: var(--font-mono);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  color: var(--amber);
+  letter-spacing: 2px;
+  text-align: center;
+  margin: 0 0 4px;
+  text-shadow: 0 0 30px rgba(232, 196, 104, 0.25);
+}
+
+.subtitle {
+  font-family: var(--font-label);
+  color: var(--brass-light);
+  font-size: 0.95rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.shutter-btn {
+  font-family: var(--font-label);
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: radial-gradient(circle at 35% 30%, var(--safelight), var(--safelight-dim) 70%);
+  border: none;
+  padding: 16px 34px;
+  border-radius: 40px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 4px rgba(139, 111, 71, 0.35),
+    0 8px 18px -6px rgba(201, 67, 42, 0.6);
+  transition: transform 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.shutter-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.shutter-btn:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
+.shutter-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.shutter-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring), 0 0 0 4px rgba(139, 111, 71, 0.35);
+}
+
+.ghost-btn {
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+  background: transparent;
+  border: 1px solid var(--brass);
+  padding: 13px 22px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.ghost-btn:hover:not(:disabled) {
+  color: var(--cream);
+  border-color: var(--amber);
+  background: rgba(232, 196, 104, 0.06);
+}
+.ghost-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.ghost-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

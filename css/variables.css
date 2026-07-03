@@ -1,0 +1,26 @@
+/**
+ * variables.css
+ * Shared design tokens. Every other stylesheet in this project
+ * pulls its colors/fonts from here — change a value once, it
+ * propagates everywhere.
+ */
+:root {
+  /* Palette */
+  --darkroom: #1a1410;
+  --shadow: #241b15;
+  --cream: #f4e8d0;
+  --cream-dim: #e8d9b8;
+  --brass: #8b6f47;
+  --brass-light: #a9895c;
+  --safelight: #c9432a;
+  --safelight-dim: #8f2f1e;
+  --amber: #e8c468;
+
+  /* Type */
+  --font-display: 'Abril Fatface', serif;
+  --font-label: 'Special Elite', monospace;
+  --font-mono: 'Courier Prime', monospace;
+
+  /* Focus ring, reused on every interactive element */
+  --focus-ring: 0 0 0 3px rgba(232, 196, 104, 0.55);
+}

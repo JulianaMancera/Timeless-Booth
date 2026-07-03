@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeless Booth — Capture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/strip.css">
+<link rel="stylesheet" href="css/booth.css">
+</head>
+<body>
+
+  <div class="page">
+    <a class="back-link" href="index.html">&larr; Back</a>
+    <h1 class="title">Timeless Booth</h1>
+    <div class="subtitle">— four frames, one strip, no do-overs —</div>
+
+    <div class="stage">
+      <div class="camera-unit">
+        <div class="bellows">
+          <div class="viewfinder" id="viewfinder">
+            <video id="video" autoplay playsinline muted aria-label="Live camera preview"></video>
+            <div class="vignette"></div>
+            <div class="idle-message" id="idleMessage">Position yourself in frame,<br>then press the shutter.</div>
+            <div class="error-message" id="errorMessage" hidden></div>
+            <div class="countdown-overlay" id="countdown" aria-live="polite">3</div>
+            <div class="flash-overlay" id="flash"></div>
+            <div class="frame-counter" id="frameCounter" hidden>
+              <span class="rec-dot"></span>SHOT <span id="shotNum">1</span>/4
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="shutter-btn" id="startBtn" type="button">Start Session</button>
+          <button class="ghost-btn" id="retakeBtn" type="button" disabled>Retake</button>
+        </div>
+        <div class="options-row">
+          <label class="control-label" for="filterSelect">
+            <span>Filter</span>
+            <select class="filter-select" id="filterSelect" aria-label="Choose a filter">
+              <option value="none">No Filter</option>
+              <option value="sepia">Sepia</option>
+              <option value="bw">Black &amp; White</option>
+              <option value="vintage" selected>Vintage</option>
+              <option value="dreamy">Dreamy</option>
+            </select>
+          </label>
+          <label class="control-label" for="timerSelect">
+            <span>Timer</span>
+            <select class="timer-select" id="timerSelect" aria-label="Choose countdown timer">
+              <option value="3" selected>3 sec</option>
+              <option value="5">5 sec</option>
+            </select>
+          </label>
+          <button class="ghost-btn" id="downloadPhotoBtn" type="button" disabled>Download Image</button>
+          <button class="ghost-btn" id="gifBtn" type="button" disabled>Download GIF</button>
+        </div>
+        <select class="camera-select" id="cameraSelect" hidden aria-label="Choose camera"></select>
+
+        <div class="status-line" id="statusLine" role="status" aria-live="polite">Camera not yet enabled.</div>
+        <div class="hint-line">Space / Enter triggers the shutter once armed</div>
+      </div>
+
+      <div class="strip-column">
+        <div class="strip-label">Developing Strip</div>
+        <div class="film-strip" id="filmStrip">
+          <div class="frame-slot" data-slot="0"><span class="placeholder-x">01</span></div>
+          <div class="frame-slot" data-slot="1"><span class="placeholder-x">02</span></div>
+          <div class="frame-slot" data-slot="2"><span class="placeholder-x">03</span></div>
+          <div class="frame-slot" data-slot="3"><span class="placeholder-x">04</span></div>
+          <div class="strip-footer" id="stripDate">TIMELESS BOOTH</div>
+        </div>
+        <button class="download-btn" id="downloadBtn" type="button">Download Strip</button>
+      </div>
+    </div>
+
+    <canvas class="hidden-canvas" id="captureCanvas"></canvas>
+    <canvas class="hidden-canvas" id="stripCanvas"></canvas>
+    <canvas class="hidden-canvas" id="noiseCanvas" width="200" height="200"></canvas>
+
+    <div class="page-footer">Camera access requires a real browser tab (not a sandboxed preview). Open this file directly.</div>
+  </div>
+
+  <!-- Load order matters: each class attaches to the shared top-level
+       scope, so dependencies must load before whatever consumes them. -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+  <script src="js/camera-manager.js"></script>
+  <script src="js/vintage-processor.js"></script>
+  <script src="js/film-strip.js"></script>
+  <script src="js/photo-booth.js"></script>
+  <script src="js/booth-main.js"></script>
+</body>
+</html>

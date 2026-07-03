@@ -1,0 +1,243 @@
+/**
+ * booth.css
+ * Layout for the live capture page: the camera "bellows" unit,
+ * viewfinder overlays (countdown/flash/errors), and controls.
+ * Depends on variables.css + base.css + strip.css being loaded first.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 60px;
+}
+
+.subtitle {
+  margin-bottom: 36px;
+}
+
+.stage {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.camera-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.bellows {
+  width: 420px;
+  max-width: 88vw;
+  background: linear-gradient(145deg, #3a2c1f, #201811);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow:
+    0 0 0 1px rgba(139, 111, 71, 0.4),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.5),
+    0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.viewfinder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: inset 0 0 40px 10px rgba(0, 0, 0, 0.7);
+}
+
+.viewfinder video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1);
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 90px 30px rgba(0, 0, 0, 0.55);
+}
+
+.idle-message,
+.error-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  font-family: var(--font-label);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  background: #0d0906;
+  line-height: 1.5;
+}
+.error-message {
+  color: var(--safelight);
+  font-size: 0.85rem;
+}
+.idle-message[hidden],
+.error-message[hidden] {
+  display: none;
+}
+
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 6rem;
+  color: var(--amber);
+  text-shadow: 0 0 40px rgba(232, 196, 104, 0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flash-overlay {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.frame-counter {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--safelight);
+  letter-spacing: 1px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.frame-counter[hidden] {
+  display: none;
+}
+
+.rec-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--safelight);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.options-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.control-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+}
+
+.filter-select {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--brass-light);
+  background: var(--darkroom);
+  border: 1px solid var(--brass);
+  border-radius: 20px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.filter-select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.camera-select {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--brass-light);
+  background: var(--darkroom);
+  border: 1px solid var(--brass);
+  border-radius: 20px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.camera-select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.status-line {
+  font-size: 0.8rem;
+  color: var(--brass-light);
+  letter-spacing: 1px;
+  min-height: 1.2em;
+  text-align: center;
+}
+
+.hint-line {
+  font-size: 0.68rem;
+  color: rgba(169, 137, 92, 0.5);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.hidden-canvas {
+  display: none;
+}
+
+.page-footer {
+  margin-top: 48px;
+  font-size: 0.7rem;
+  color: rgba(169, 137, 92, 0.5);
+  letter-spacing: 1px;
+  text-align: center;
+  max-width: 500px;
+}
+
+.back-link {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+  text-decoration: none;
+  margin-bottom: 28px;
+  display: inline-block;
+}
+.back-link:hover {
+  color: var(--amber);
+}

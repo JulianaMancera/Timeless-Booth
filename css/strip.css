@@ -1,0 +1,123 @@
+/**
+ * strip.css
+ * The physical film-strip component: sprocket holes, frame slots,
+ * the "develop" animation, and the paper-stock styling. Used on
+ * both the landing page (as a static preview) and the live booth
+ * (as the real capture target) — same .film-strip markup, two contexts.
+ */
+.strip-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.strip-label {
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--brass-light);
+}
+
+.film-strip {
+  width: 170px;
+  background: var(--cream);
+  border-radius: 4px;
+  padding: 14px 10px;
+  position: relative;
+  box-shadow:
+    0 20px 50px -15px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.15);
+  transform: rotate(-1.2deg);
+}
+
+.film-strip::before,
+.film-strip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background-image: radial-gradient(circle, #0d0906 4px, transparent 4.3px);
+  background-size: 100% 30px;
+  background-repeat: repeat-y;
+  background-position: center 8px;
+}
+.film-strip::before { left: 2px; }
+.film-strip::after { right: 2px; }
+
+.frame-slot {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #c9bfa0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.frame-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: contrast(0.6) brightness(2.2);
+  animation: develop 1.8s ease forwards;
+}
+
+@keyframes develop {
+  0%   { opacity: 0.15; filter: contrast(0.5) brightness(2.6) saturate(0.2); }
+  40%  { opacity: 0.6;  filter: contrast(0.8) brightness(1.4) saturate(0.6); }
+  100% { opacity: 1;    filter: contrast(1) brightness(1) saturate(1); }
+}
+
+.frame-slot .placeholder-x {
+  color: rgba(0, 0, 0, 0.2);
+  font-size: 0.7rem;
+  font-family: var(--font-label);
+}
+
+.frame-stamp {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 0.55rem;
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(244, 232, 208, 0.7);
+  padding: 1px 3px;
+}
+
+.strip-footer {
+  text-align: center;
+  font-size: 0.6rem;
+  color: rgba(26, 20, 16, 0.55);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.download-btn {
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--darkroom);
+  background: var(--amber);
+  border: none;
+  padding: 12px 26px;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px -8px rgba(232, 196, 104, 0.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.15s ease;
+}
+.download-btn.ready { opacity: 1; pointer-events: auto; }
+.download-btn:hover.ready { transform: translateY(-2px); }
+.download-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+@media (prefers-reduced-motion: reduce) {
+  .frame-slot img { animation: none; opacity: 1; filter: none; }
+}
