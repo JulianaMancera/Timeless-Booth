@@ -178,7 +178,7 @@ class VintageProcessor {
         quality: 8,
         width: 640,
         height: 480,
-        workerScript: 'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js',
+        workerScript: 'js/gif.worker.js',
       });
 
       loadedFrames.forEach((img) => {
