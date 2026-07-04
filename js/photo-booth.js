@@ -24,11 +24,12 @@ const BoothState = Object.freeze({
 });
 
 const SESSION_CONFIG = Object.freeze({
-  TOTAL_SHOTS: 4,
   DEFAULT_COUNTDOWN_SECONDS: 3,
   FLASH_DURATION_MS: 70,
   POST_SHOT_DELAY_MS: 600,
 });
+
+// LAYOUT_PRESETS now lives in js/layout-presets.js, loaded before this file.
 
 class PhotoBooth {
   constructor() {
@@ -41,14 +42,27 @@ class PhotoBooth {
     this.camera = new CameraManager(this.dom.video);
     this.processor = new VintageProcessor(this.dom.noiseCanvas);
     this.filmStrip = new FilmStrip(this.dom.filmStripEl, this.dom.stripDate);
-    this.currentFilter = 'vintage';
+    this.filmStrip.onBestShotSelected = (index) => this._markBestShot(index);
+    this.currentFilter = 'none';
     this.countdownSeconds = SESSION_CONFIG.DEFAULT_COUNTDOWN_SECONDS;
+    this.bestShotIndex = -1;
+    this.layout = null;
 
     this._bindEvents();
     this._applyFilterToPreview();
+    this._setLayout(this._getLayoutFromUrl(), false);
     window.setTimeout(() => {
       void this._enableCamera();
     }, 180);
+  }
+
+  /** @private */
+  _getLayoutFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const layoutId = params.get('layout');
+    return LAYOUT_PRESETS.some((layout) => layout.id === layoutId)
+      ? layoutId
+      : LAYOUT_PRESETS[0].id;
   }
 
   /** @private */
@@ -65,9 +79,10 @@ class PhotoBooth {
       startBtn: byId('startBtn'),
       retakeBtn: byId('retakeBtn'),
       filterSelect: byId('filterSelect'),
+      layoutGrid: byId('layoutGrid'),
       downloadPhotoBtn: byId('downloadPhotoBtn'),
       gifBtn: byId('gifBtn'),
-      timerSelect: byId('timerSelect'),
+      timerToggle: byId('timerToggle'),
       cameraSelect: byId('cameraSelect'),
       statusLine: byId('statusLine'),
       filmStripEl: byId('filmStrip'),
@@ -87,7 +102,25 @@ class PhotoBooth {
     this.dom.downloadPhotoBtn.addEventListener('click', () => this._onDownloadPhotoPressed());
     this.dom.gifBtn.addEventListener('click', () => this._onDownloadGifPressed());
     this.dom.filterSelect.addEventListener('change', (e) => this._onFilterChanged(e.target.value));
-    this.dom.timerSelect.addEventListener('change', (e) => this._onTimerChanged(Number(e.target.value)));
+    if (this.dom.timerToggle) {
+      this.dom.timerToggle.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-seconds]');
+        if (!btn) return;
+        this.dom.timerToggle.querySelectorAll('.timer-option').forEach((b) => {
+          const selected = b === btn;
+          b.classList.toggle('selected', selected);
+          b.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+        this._onTimerChanged(Number(btn.dataset.seconds));
+      });
+    }
+    if (this.dom.layoutGrid) {
+      this.dom.layoutGrid.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-layout-id]');
+        if (!button) return;
+        this._setLayout(button.dataset.layoutId);
+      });
+    }
     this.dom.cameraSelect.addEventListener('change', (e) => this._switchCamera(e.target.value));
 
     document.addEventListener('keydown', (e) => {
@@ -184,9 +217,9 @@ class PhotoBooth {
     this.shots = [];
     this.dom.frameCounter.hidden = false;
 
-    for (let i = 0; i < SESSION_CONFIG.TOTAL_SHOTS; i++) {
+    for (let i = 0; i < this.layout.totalShots; i++) {
       this.dom.shotNum.textContent = String(i + 1);
-      this.dom.statusLine.textContent = `Shot ${i + 1} of ${SESSION_CONFIG.TOTAL_SHOTS} — get ready...`;
+      this.dom.statusLine.textContent = `Shot ${i + 1} of ${this.layout.totalShots} — get ready...`;
       await this._countdown(this.countdownSeconds);
 
       this._setState(BoothState.CAPTURING);
@@ -240,7 +273,9 @@ class PhotoBooth {
   /** @private */
   _reset() {
     this.shots = [];
-    this.filmStrip.reset(SESSION_CONFIG.TOTAL_SHOTS);
+    this.bestShotIndex = -1;
+    this.filmStrip.reset(this.layout.totalShots);
+    this.filmStrip.markBestShot(-1);
     this.dom.downloadBtn.classList.remove('ready');
     this._updateExportButtons();
     this.dom.frameCounter.hidden = true;
@@ -252,18 +287,52 @@ class PhotoBooth {
   /** @private */
   _updateExportButtons() {
     const hasShots = this.shots.length > 0;
-    const canDownloadStrip = this.shots.length === SESSION_CONFIG.TOTAL_SHOTS;
+    const canDownloadStrip = this.layout && this.shots.length === this.layout.totalShots;
     this.dom.downloadPhotoBtn.disabled = !hasShots;
     this.dom.gifBtn.disabled = this.shots.length < 2;
     this.dom.downloadBtn.disabled = !canDownloadStrip;
-    this.dom.downloadBtn.classList.toggle('ready', canDownloadStrip);
+    this.dom.downloadBtn.classList.toggle('ready', Boolean(canDownloadStrip));
   }
 
   /** @private */
   async _onDownloadPressed() {
-    if (this.shots.length < SESSION_CONFIG.TOTAL_SHOTS) return;
-    const dataUrl = await this.processor.buildStrip(this.shots, this.dom.stripCanvas);
+    if (this.shots.length < this.layout.totalShots) return;
+    const dataUrl = await this.processor.buildStrip(this.shots, this.dom.stripCanvas, this.bestShotIndex);
     this._triggerDownload(dataUrl, 'timeless-booth-strip.png');
+  }
+
+  /** @private */
+  _setLayout(layoutId, resetSession = true) {
+    const nextLayout = LAYOUT_PRESETS.find((layout) => layout.id === layoutId);
+    if (!nextLayout || (this.layout && this.layout.id === nextLayout.id)) return;
+    if (this.state === BoothState.CAPTURING) return;
+
+    this.layout = nextLayout;
+    if (this.dom.layoutGrid) {
+      this.dom.layoutGrid.querySelectorAll('[data-layout-id]').forEach((button) => {
+        const selected = button.dataset.layoutId === layoutId;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      });
+    }
+    this.dom.filmStripEl.className = `film-strip ${nextLayout.styleClass}`;
+    const frameTotal = document.getElementById('frameTotal');
+    if (frameTotal) frameTotal.textContent = String(nextLayout.totalShots);
+    const stripStyleLabel = document.getElementById('stripStyleLabel');
+    if (stripStyleLabel) stripStyleLabel.textContent = `${nextLayout.name} Strip`;
+
+    if (resetSession) {
+      this._reset();
+    }
+    this.dom.statusLine.textContent = `${nextLayout.name} selected. Capture ${nextLayout.totalShots} frames.`;
+  }
+
+  /** @private */
+  _markBestShot(index) {
+    if (index < 0 || index >= this.shots.length) return;
+    this.bestShotIndex = index;
+    this.filmStrip.markBestShot(index);
+    this.dom.statusLine.textContent = `Best shot marked: frame ${index + 1}.`;
   }
 
   /** @private */

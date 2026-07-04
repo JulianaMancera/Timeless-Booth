@@ -51,16 +51,32 @@ class VintageProcessor {
   getFilterStyle(filterName = 'vintage') {
     switch (filterName) {
       case 'none':
-        return 'contrast(1.02) saturate(1) brightness(1)';
+        return 'none';
       case 'bw':
-        return 'grayscale(1) contrast(1.08) brightness(0.96)';
+        // True grayscale, punched up slightly so it doesn't look flat.
+        return 'grayscale(1) contrast(1.15) brightness(1.02)';
       case 'sepia':
-        return 'sepia(0.8) contrast(1.08) saturate(0.8) brightness(0.98)';
+        // Classic sepia: desaturate first, then tint, so it reads as
+        // sepia rather than just "warm color photo".
+        return 'grayscale(0.35) sepia(0.85) contrast(1.05) saturate(1.1) brightness(1)';
       case 'dreamy':
-        return 'contrast(1.04) saturate(0.7) brightness(1.02) hue-rotate(-8deg)';
+        // Soft, airy, slightly lifted blacks and a gentle glow feel.
+        return 'contrast(0.92) saturate(0.75) brightness(1.1) blur(0.3px) hue-rotate(-4deg)';
+      case 'cool':
+        // Push toward blue/cyan instead of the old 180deg hue flip,
+        // which just inverted skin tones instead of looking "cool".
+        return 'contrast(1.05) saturate(0.95) brightness(1.02) hue-rotate(-18deg) sepia(0)';
+      case 'warm':
+        // Golden-hour warmth without going full sepia.
+        return 'contrast(1.05) saturate(1.2) brightness(1.03) sepia(0.25) hue-rotate(-6deg)';
+      case 'film':
+        // Higher contrast, slightly crushed color, faint warmth —
+        // like consumer print film, not a full sepia wash.
+        return 'contrast(1.18) saturate(0.85) brightness(0.97) sepia(0.12)';
       case 'vintage':
       default:
-        return 'sepia(0.7) contrast(1.08) saturate(0.7) brightness(0.95)';
+        // Faded, aged photograph: desaturated, lifted, warm cast.
+        return 'sepia(0.45) contrast(1.05) saturate(0.65) brightness(1.03)';
     }
   }
 
@@ -87,14 +103,20 @@ class VintageProcessor {
     ctx.restore();
     ctx.filter = 'none';
 
-    this._applyGrainAndVignette(ctx, w, h);
+    this._applyGrainAndVignette(ctx, w, h, filterName);
     return canvas.toDataURL('image/jpeg', 0.92);
   }
 
   /** @private */
-  _applyGrainAndVignette(ctx, w, h) {
-    ctx.fillStyle = 'rgba(80,50,20,0.12)';
-    ctx.fillRect(0, 0, w, h);
+  _applyGrainAndVignette(ctx, w, h, filterName = 'vintage') {
+    // Only lay down the warm brown tint for filters that are meant to
+    // look warm/aged. Cool/B&W/no-filter shots would otherwise always
+    // get pushed sepia regardless of what the person picked.
+    const warmTintFilters = new Set(['sepia', 'vintage', 'film', 'warm']);
+    if (warmTintFilters.has(filterName)) {
+      ctx.fillStyle = 'rgba(80,50,20,0.12)';
+      ctx.fillRect(0, 0, w, h);
+    }
 
     ctx.globalAlpha = 0.5;
     const { width: nw, height: nh } = this.noiseCanvas;
@@ -118,7 +140,7 @@ class VintageProcessor {
    * @param {HTMLCanvasElement} canvas scratch canvas to draw into
    * @returns {Promise<string>} PNG data URL of the finished strip
    */
-  async buildStrip(shotDataUrls, canvas) {
+  async buildStrip(shotDataUrls, canvas, bestShotIndex = -1) {
     const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
     const stripW = frameW + pad * 2;
     const stripH = pad + (frameH + gap) * shotDataUrls.length + footerH;
@@ -149,12 +171,27 @@ class VintageProcessor {
       ctx.fillStyle = 'rgba(13,9,6,0.6)';
       ctx.font = '20px Courier New';
       ctx.fillText(`FRAME 0${i + 1}/0${shotDataUrls.length}`, pad + 10, y + frameH - 14);
+
+      if (bestShotIndex === i) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath();
+        ctx.arc(pad + frameW - 32, y + 32, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffdd55';
+        ctx.font = '24px Georgia';
+        ctx.textAlign = 'center';
+        ctx.fillText('★', pad + frameW - 32, y + 38);
+        ctx.textAlign = 'left';
+      }
     });
 
+    const footerY = pad + (frameH + gap) * shotDataUrls.length;
     ctx.fillStyle = 'rgba(26,20,16,0.7)';
-    ctx.font = '26px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText(`TIMELESS BOOTH — ${new Date().toLocaleDateString()}`, stripW / 2, stripH - 30);
+    ctx.font = '22px Georgia';
+    ctx.fillText('TIMELESS BOOTH', stripW / 2, footerY + footerH / 2 - 8);
+    ctx.font = '14px Courier New';
+    ctx.fillText(new Date().toLocaleDateString(), stripW / 2, footerY + footerH / 2 + 16);
     ctx.textAlign = 'left';
 
     return canvas.toDataURL('image/png');
@@ -189,7 +226,7 @@ class VintageProcessor {
         frameCtx.filter = this.getFilterStyle(filterName);
         this._drawImageCover(frameCtx, img, 0, 0, 640, 480);
         frameCtx.filter = 'none';
-        this._applyGrainAndVignette(frameCtx, 640, 480);
+        this._applyGrainAndVignette(frameCtx, 640, 480, filterName);
         gif.addFrame(frameCanvas, { copy: true, delay: 500 });
       });
 

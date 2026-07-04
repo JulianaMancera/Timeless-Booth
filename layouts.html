@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeless Booth — Choose Your Strip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/strip.css">
+<link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+  <div class="page">
+    <a class="back-link" href="index.html">&larr; Back</a>
+    <h1 class="title">Choose Your Strip</h1>
+    <div class="subtitle">— pick a vintage film format before you step into the booth —</div>
+
+    <div class="layouts-stage">
+      <div class="layout-grid" id="layoutGrid" role="tablist" aria-label="Strip layouts"></div>
+
+      <div class="strip-column hero-strip-preview">
+        <div class="strip-label" id="previewLayoutName">Preview</div>
+        <div class="film-strip" id="previewStrip"></div>
+        <a class="shutter-btn" id="enterBoothLink" href="booth.html?layout=classic4">Enter the Booth</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/layout-presets.js"></script>
+  <script src="js/layouts.js"></script>
+</body>
+</html>

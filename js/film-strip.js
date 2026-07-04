@@ -27,6 +27,7 @@ class FilmStrip {
   placeShot(index, dataUrl) {
     const slot = this.rootEl.querySelector(`[data-slot="${index}"]`);
     slot.innerHTML = '';
+    slot.classList.remove('starred');
 
     const img = document.createElement('img');
     img.src = dataUrl;
@@ -38,15 +39,60 @@ class FilmStrip {
     const now = new Date();
     stamp.textContent = `FR.0${index + 1} • ${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)}`;
     slot.appendChild(stamp);
+
+    const star = document.createElement('button');
+    star.type = 'button';
+    star.className = 'frame-star';
+    star.textContent = '★';
+    star.title = `Mark frame ${index + 1} as your best shot`;
+    star.addEventListener('click', () => {
+      if (typeof this.onBestShotSelected === 'function') {
+        this.onBestShotSelected(index);
+      }
+    });
+    slot.appendChild(star);
   }
 
   /** @param {number} totalSlots */
   reset(totalSlots) {
-    for (let i = 0; i < totalSlots; i++) {
-      const slot = this.rootEl.querySelector(`[data-slot="${i}"]`);
-      slot.innerHTML = `<span class="placeholder-x">0${i + 1}</span>`;
+    let footer = this.rootEl.querySelector('.strip-footer');
+    if (!footer) {
+      footer = document.createElement('div');
+      footer.className = 'strip-footer';
+      footer.id = 'stripDate';
+    } else {
+      footer.remove();
     }
+
+    this.rootEl.innerHTML = '';
+    for (let i = 0; i < totalSlots; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'frame-slot';
+      slot.dataset.slot = String(i);
+      slot.innerHTML = `<span class="placeholder-x">0${i + 1}</span>`;
+      this.rootEl.appendChild(slot);
+    }
+
+    this.rootEl.appendChild(footer);
+    this.dateEl = footer;
     this.dateEl.textContent = 'TIMELESS BOOTH';
+  }
+
+  markBestShot(index) {
+    this.rootEl.querySelectorAll('.frame-slot').forEach((slot) => {
+      slot.classList.remove('starred');
+      const star = slot.querySelector('.frame-star');
+      if (star) star.classList.remove('selected');
+    });
+
+    if (index >= 0) {
+      const slot = this.rootEl.querySelector(`[data-slot="${index}"]`);
+      if (slot) {
+        slot.classList.add('starred');
+        const star = slot.querySelector('.frame-star');
+        if (star) star.classList.add('selected');
+      }
+    }
   }
 
   markComplete() {

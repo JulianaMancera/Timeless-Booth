@@ -34,7 +34,7 @@
 
 .film-strip::before,
 .film-strip::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   bottom: 0;
@@ -44,8 +44,12 @@
   background-repeat: repeat-y;
   background-position: center 8px;
 }
-.film-strip::before { left: 2px; }
-.film-strip::after { right: 2px; }
+.film-strip::before {
+  left: 2px;
+}
+.film-strip::after {
+  right: 2px;
+}
 
 .frame-slot {
   width: 100%;
@@ -70,15 +74,54 @@
 }
 
 @keyframes develop {
-  0%   { opacity: 0.15; filter: contrast(0.5) brightness(2.6) saturate(0.2); }
-  40%  { opacity: 0.6;  filter: contrast(0.8) brightness(1.4) saturate(0.6); }
-  100% { opacity: 1;    filter: contrast(1) brightness(1) saturate(1); }
+  0% {
+    opacity: 0.15;
+    filter: contrast(0.5) brightness(2.6) saturate(0.2);
+  }
+  40% {
+    opacity: 0.6;
+    filter: contrast(0.8) brightness(1.4) saturate(0.6);
+  }
+  100% {
+    opacity: 1;
+    filter: contrast(1) brightness(1) saturate(1);
+  }
 }
 
 .frame-slot .placeholder-x {
   color: rgba(0, 0, 0, 0.2);
   font-size: 0.7rem;
   font-family: var(--font-label);
+}
+
+.frame-star {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 16px;
+  color: #9c7a1d;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.frame-star.selected {
+  background: #f8db6b;
+  color: #2c1900;
+}
+
+.frame-star:hover {
+  transform: scale(1.05);
+}
+
+.frame-slot.starred {
+  box-shadow: 0 0 0 3px rgba(255, 211, 96, 0.55);
 }
 
 .frame-stamp {
@@ -99,25 +142,98 @@
   margin-top: 2px;
 }
 
-.download-btn {
-  font-size: 0.85rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--darkroom);
-  background: var(--amber);
-  border: none;
-  padding: 12px 26px;
-  border-radius: 30px;
-  cursor: pointer;
-  box-shadow: 0 8px 18px -8px rgba(232, 196, 104, 0.7);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.15s ease;
+.film-strip.layout-mini {
+  width: 140px;
 }
-.download-btn.ready { opacity: 1; pointer-events: auto; }
-.download-btn:hover.ready { transform: translateY(-2px); }
-.download-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.film-strip.layout-tall {
+  width: 190px;
+}
+
+.film-strip.layout-portrait {
+  background: linear-gradient(180deg, #f4f1e7 0%, #dcd1b9 100%);
+}
+.film-strip.layout-classic {
+  background: linear-gradient(180deg, #f4e8d0 0%, #e4d0ba 100%);
+}
+.film-strip.layout-film {
+  background: linear-gradient(180deg, #f9f1e2 0%, #e6d7b4 100%);
+  width: 180px;
+}
+.film-strip.layout-retro {
+  background: linear-gradient(180deg, #f7f0fe 0%, #e3dcf7 100%);
+  width: 200px;
+}
+.film-strip.layout-polaroid {
+  width: 170px;
+  background: linear-gradient(180deg, #fff7f1 0%, #f1ded0 100%);
+  border-radius: 22px;
+}
+.film-strip.layout-cinema {
+  width: 210px;
+  background: linear-gradient(180deg, #eef3ff 0%, #d7defa 100%);
+  border-radius: 10px;
+}
+
+.film-strip.layout-tall {
+  width: 190px;
+}
+
+.film-strip.layout-mini {
+  width: 140px;
+}
+
+.download-btn {
+  font-size: 0.95rem;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #211a0f;
+  background: linear-gradient(135deg, #ffd284 0%, #f2a644 100%);
+  border: none;
+  padding: 14px 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 14px 24px rgba(184, 108, 18, 0.3);
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+.download-btn:disabled {
+  background: rgba(255, 210, 138, 0.5);
+  color: rgba(33, 26, 15, 0.6);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.download-btn.ready {
+  transform: translateY(-1px);
+}
+.download-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 30px rgba(184, 108, 18, 0.45);
+}
+.download-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.download-btn.ready {
+  opacity: 1;
+  pointer-events: auto;
+}
+.download-btn:hover.ready {
+  transform: translateY(-2px);
+}
+.download-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .frame-slot img { animation: none; opacity: 1; filter: none; }
+  .frame-slot img {
+    animation: none;
+    opacity: 1;
+    filter: none;
+  }
 }

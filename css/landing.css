@@ -45,14 +45,162 @@
   flex-wrap: wrap;
 }
 
+.layout-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 44px 0;
+}
+
+.layout-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.layout-copy {
+  margin: 6px 0 0;
+  color: var(--cream-dim);
+  max-width: 560px;
+}
+
+.layout-grid {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.layout-card {
+  width: 120px;
+  min-height: 148px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--brass-light);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.layout-card.selected,
+.layout-card:hover {
+  border-color: var(--amber);
+  background: rgba(255, 243, 210, 0.18);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.layouts-stage {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 1100px;
+  width: 100%;
+  margin: 8px auto 0;
+}
+
+.layout-preview {
+  height: 92px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.layout-count {
+  font-size: 0.68rem;
+  color: var(--brass-light);
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+}
+
+/* Mini frame-count thumbnail rendered inside each layout-preview,
+   so the picker shows an honest representation of the strip shape
+   and frame count instead of just a text label. */
+.mini-frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  align-content: center;
+  max-width: 78px;
+}
+
+.mini-frame {
+  width: 16px;
+  height: 12px;
+  background: rgba(20, 14, 8, 0.32);
+  border: 1px solid rgba(20, 14, 8, 0.45);
+  border-radius: 2px;
+}
+
+.layout-preview.shape-portrait .mini-frame {
+  width: 11px;
+  height: 16px;
+}
+
+.layout-preview.shape-square .mini-frame {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.layout-preview.shape-wide .mini-frame {
+  width: 18px;
+  height: 8px;
+}
+
+.layout-preview--classic4 {
+  background: linear-gradient(180deg, #f6ead0 0%, #d9c2a0 100%);
+}
+.layout-preview--portrait3 {
+  background: linear-gradient(180deg, #e8f2ff 0%, #d4e4ff 100%);
+}
+.layout-preview--mini2 {
+  background: linear-gradient(180deg, #f7e8ff 0%, #d8c6ff 100%);
+}
+.layout-preview--tall6 {
+  background: linear-gradient(180deg, #e8fff4 0%, #c8f3df 100%);
+}
+.layout-preview--film5 {
+  background: linear-gradient(180deg, #fff1e0 0%, #f7d4b0 100%);
+}
+.layout-preview--retro7 {
+  background: linear-gradient(180deg, #e9f7ff 0%, #d2e9ff 100%);
+}
+.layout-preview--polaroid4 {
+  background: linear-gradient(180deg, #fff6f0 0%, #f3d9cb 100%);
+}
+.layout-preview--cinema8 {
+  background: linear-gradient(180deg, #f0f7ff 0%, #c3d6ff 100%);
+}
+
+.layout-name {
+  font-size: 0.8rem;
+  font-family: var(--font-label);
+  letter-spacing: 0.8px;
+  color: var(--safelight);
+}
+
 /* Static mockup strip — same markup/classes as the live booth,
    just pre-filled with placeholder frames instead of real photos. */
 .hero-strip-preview .film-strip {
   transform: rotate(2deg);
 }
 .hero-strip-preview .frame-slot {
-  background:
-    linear-gradient(135deg, #d8cba3, #c9bfa0);
+  background: linear-gradient(135deg, #d8cba3, #c9bfa0);
 }
 .hero-strip-preview .frame-slot .mock-figure {
   width: 34%;
@@ -115,8 +263,16 @@
 }
 
 @media (max-width: 720px) {
-  .steps { grid-template-columns: 1fr; }
-  .hero-copy { text-align: center; }
-  .hero-copy .title { text-align: center; }
-  .hero-copy .cta-row { justify-content: center; }
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  .hero-copy {
+    text-align: center;
+  }
+  .hero-copy .title {
+    text-align: center;
+  }
+  .hero-copy .cta-row {
+    justify-content: center;
+  }
 }
