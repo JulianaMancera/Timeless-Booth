@@ -34,12 +34,6 @@ class FilmStrip {
     img.alt = `Developed photo, frame ${index + 1}`;
     slot.appendChild(img);
 
-    const stamp = document.createElement('div');
-    stamp.className = 'frame-stamp';
-    const now = new Date();
-    stamp.textContent = `FR.0${index + 1} • ${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)}`;
-    slot.appendChild(stamp);
-
     const star = document.createElement('button');
     star.type = 'button';
     star.className = 'frame-star';
@@ -51,6 +45,33 @@ class FilmStrip {
       }
     });
     slot.appendChild(star);
+  }
+
+  /**
+   * @param {number} index
+   * @param {{id: number, emoji: string, x: number, y: number}[]} stickers
+   */
+  renderStickers(index, stickers) {
+    const slot = this.rootEl.querySelector(`[data-slot="${index}"]`);
+    if (!slot) return;
+    slot.querySelectorAll('.placed-sticker').forEach((sticker) => sticker.remove());
+
+    stickers.forEach((sticker) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'placed-sticker';
+      button.textContent = sticker.emoji;
+      button.title = `Remove ${sticker.emoji} sticker from frame ${index + 1}`;
+      button.setAttribute('aria-label', button.title);
+      button.style.left = `${sticker.x * 100}%`;
+      button.style.top = `${sticker.y * 100}%`;
+      button.addEventListener('click', () => {
+        if (typeof this.onStickerRemoved === 'function') {
+          this.onStickerRemoved(index, sticker.id);
+        }
+      });
+      slot.appendChild(button);
+    });
   }
 
   /** @param {number} totalSlots */

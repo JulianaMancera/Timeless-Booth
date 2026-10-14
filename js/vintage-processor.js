@@ -14,11 +14,11 @@
 
 /** Layout constants for the downloadable strip composite. */
 const STRIP_LAYOUT = Object.freeze({
-  frameW: 640,
-  frameH: 480,
-  pad: 40,
-  gap: 30,
-  footerH: 80,
+  frameW: 480,
+  frameH: 360,
+  pad: 30,
+  gap: 18,
+  footerH: 84,
 });
 
 class VintageProcessor {
@@ -138,102 +138,129 @@ class VintageProcessor {
    * Composites all captured shots into a single downloadable strip.
    * @param {string[]} shotDataUrls
    * @param {HTMLCanvasElement} canvas scratch canvas to draw into
+   * @param {{
+   *   bestShotIndex?: number,
+   *   designId?: string,
+   *   stickers?: {emoji: string, x: number, y: number}[][],
+   *   footerText?: string
+   * }} options
    * @returns {Promise<string>} PNG data URL of the finished strip
    */
-  async buildStrip(shotDataUrls, canvas, bestShotIndex = -1) {
-    const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
-    const stripW = frameW + pad * 2;
-    const stripH = pad + (frameH + gap) * shotDataUrls.length + footerH;
-    canvas.width = stripW;
-    canvas.height = stripH;
-    const ctx = canvas.getContext('2d');
-
-    ctx.fillStyle = '#fff8f2';
-    ctx.fillRect(0, 0, stripW, stripH);
-
-    ctx.fillStyle = '#f2d4df';
-    const holeRadius = 9;
-    const holeGap = 46;
-    for (let y = 20; y < stripH - 20; y += holeGap) {
-      ctx.beginPath(); ctx.arc(20, y, holeRadius, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(stripW - 20, y, holeRadius, 0, Math.PI * 2); ctx.fill();
-    }
-
+  async buildStrip(shotDataUrls, canvas, options = {}) {
     const images = await Promise.all(shotDataUrls.map(this._loadImage));
-
-    images.forEach((img, i) => {
-      const y = pad + i * (frameH + gap);
-      // Draw with "cover" semantics to avoid stretching (center-crop)
-      this._drawImageCover(ctx, img, pad, y, frameW, frameH);
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(pad, y, frameW, frameH);
-      ctx.fillStyle = 'rgba(13,9,6,0.6)';
-      ctx.font = '20px Courier New';
-      ctx.fillText(`FRAME 0${i + 1}/0${shotDataUrls.length}`, pad + 10, y + frameH - 14);
-
-      if (bestShotIndex === i) {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.beginPath();
-        ctx.arc(pad + frameW - 32, y + 32, 20, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ffdd55';
-        ctx.font = '24px Georgia';
-        ctx.textAlign = 'center';
-        ctx.fillText('★', pad + frameW - 32, y + 38);
-        ctx.textAlign = 'left';
-      }
-    });
-
-    const footerY = pad + (frameH + gap) * shotDataUrls.length;
-    ctx.fillStyle = 'rgba(48,36,59,0.82)';
-    ctx.textAlign = 'center';
-    ctx.font = '22px Georgia';
-    ctx.fillText('STICKER STUDIO', stripW / 2, footerY + footerH / 2 - 8);
-    ctx.font = '14px Courier New';
-    ctx.fillText(new Date().toLocaleDateString(), stripW / 2, footerY + footerH / 2 + 16);
-    ctx.textAlign = 'left';
-
+    this._drawStrip(canvas, images, options);
     return canvas.toDataURL('image/png');
   }
 
   /**
-   * Builds an animated GIF from the captured frames.
+   * Builds a GIF of the entire photo strip, highlighting each photo in turn.
    * @param {string[]} shotDataUrls
-   * @param {string} [filterName='vintage']
+   * @param {{
+   *   bestShotIndex?: number,
+   *   designId?: string,
+   *   stickers?: {emoji: string, x: number, y: number}[][],
+   *   footerText?: string
+   * }} options
    * @returns {Promise<Blob>}
    */
-  async buildGif(shotDataUrls, filterName = 'vintage') {
+  async buildGif(shotDataUrls, options = {}) {
     if (typeof window.GIF === 'undefined') {
       throw new Error('GIF export is unavailable because the GIF library did not load.');
     }
 
     const loadedFrames = await Promise.all(shotDataUrls.map((src) => this._loadImage(src)));
+    const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
+    const scale = 0.7;
+    const width = Math.round((frameW + pad * 2) * scale);
+    const height = Math.round((pad + (frameH + gap) * loadedFrames.length + footerH) * scale);
     return new Promise((resolve, reject) => {
       const gif = new window.GIF({
         workers: 2,
         quality: 8,
-        width: 640,
-        height: 480,
+        width,
+        height,
         workerScript: 'js/gif.worker.js',
       });
 
-      loadedFrames.forEach((img) => {
+      loadedFrames.forEach((_, highlightIndex) => {
         const frameCanvas = document.createElement('canvas');
-        frameCanvas.width = 640;
-        frameCanvas.height = 480;
-        const frameCtx = frameCanvas.getContext('2d');
-        frameCtx.filter = this.getFilterStyle(filterName);
-        this._drawImageCover(frameCtx, img, 0, 0, 640, 480);
-        frameCtx.filter = 'none';
-        this._applyGrainAndVignette(frameCtx, 640, 480, filterName);
-        gif.addFrame(frameCanvas, { copy: true, delay: 500 });
+        frameCanvas.width = width;
+        frameCanvas.height = height;
+        this._drawStrip(frameCanvas, loadedFrames, {
+          ...options,
+          highlightIndex,
+          scale,
+        });
+        gif.addFrame(frameCanvas, { copy: true, delay: 650 });
       });
 
       gif.on('finished', (blob) => resolve(blob));
       gif.on('abort', () => reject(new Error('GIF export was interrupted.')));
       gif.render();
     });
+  }
+
+  /** @private */
+  _drawStrip(canvas, images, options = {}) {
+    const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
+    const stripW = frameW + pad * 2;
+    const footerY = pad + (frameH + gap) * images.length;
+    const stripH = footerY + footerH;
+    const scale = options.scale || 1;
+    const ctx = canvas.getContext('2d');
+    const design = STRIP_DESIGNS.find((item) => item.id === options.designId) || STRIP_DESIGNS[0];
+
+    if (canvas.width !== Math.round(stripW * scale)) canvas.width = Math.round(stripW * scale);
+    if (canvas.height !== Math.round(stripH * scale)) canvas.height = Math.round(stripH * scale);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillStyle = design.background;
+    ctx.fillRect(0, 0, stripW, stripH);
+
+    ctx.fillStyle = design.accent;
+    ctx.fillRect(0, 0, stripW, 12);
+    for (let y = 22; y < stripH - 15; y += 28) {
+      ctx.beginPath(); ctx.arc(15, y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(stripW - 15, y, 5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    images.forEach((img, i) => {
+      const y = pad + i * (frameH + gap);
+      ctx.fillStyle = design.frame;
+      ctx.fillRect(pad - 5, y - 5, frameW + 10, frameH + 10);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(pad, y, frameW, frameH);
+      ctx.clip();
+      this._drawImageCover(ctx, img, pad, y, frameW, frameH);
+
+      (options.stickers?.[i] || []).forEach((sticker) => {
+        ctx.font = '38px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sticker.emoji, pad + sticker.x * frameW, y + sticker.y * frameH);
+      });
+      ctx.restore();
+
+      ctx.strokeStyle = design.accent;
+      ctx.lineWidth = options.highlightIndex === i ? 8 : 2;
+      ctx.strokeRect(pad, y, frameW, frameH);
+      if (options.bestShotIndex === i) {
+        ctx.font = '34px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('⭐', pad + frameW - 10, y + 8);
+      }
+    });
+
+    ctx.fillStyle = design.accent;
+    ctx.fillRect(0, footerY, stripW, 4);
+    ctx.fillStyle = '#30243b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 22px Nunito, sans-serif';
+    ctx.fillText(options.footerText || 'STICKER STUDIO', stripW / 2, footerY + footerH / 2, stripW - 24);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 
   /** @private */

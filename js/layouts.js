@@ -11,6 +11,8 @@
  */
 
 const STORAGE_KEY = 'timelessBoothLayout';
+const DESIGN_STORAGE_KEY = 'stickerStudioDesign';
+let selectedDesignId = STRIP_DESIGNS[0].id;
 
 /** @param {number} count @returns {HTMLElement} */
 function buildMiniFrames(count) {
@@ -62,7 +64,7 @@ function renderPreviewStrip(layoutId) {
   const enterLink = document.getElementById('enterBoothLink');
   if (!strip) return;
 
-  strip.className = `film-strip ${layout.styleClass}`;
+  strip.className = `film-strip ${layout.styleClass} theme-${selectedDesignId}`;
   strip.innerHTML = '';
   for (let i = 0; i < layout.totalShots; i++) {
     const slot = document.createElement('div');
@@ -76,7 +78,23 @@ function renderPreviewStrip(layoutId) {
   strip.appendChild(footer);
 
   if (nameEl) nameEl.textContent = `${layout.name} — ${layout.totalShots} shots`;
-  if (enterLink) enterLink.href = `booth.html?layout=${layout.id}`;
+  if (enterLink) enterLink.href = `booth.html?layout=${layout.id}&design=${selectedDesignId}`;
+}
+
+/** @param {string} designId */
+function selectDesign(designId) {
+  if (!STRIP_DESIGNS.some((design) => design.id === designId)) return;
+  selectedDesignId = designId;
+  const selector = document.getElementById('designSelect');
+  if (selector) selector.value = designId;
+  renderPreviewStrip(
+    document.querySelector('#layoutGrid [aria-selected="true"]')?.dataset.layoutId || LAYOUT_PRESETS[0].id,
+  );
+  try {
+    window.localStorage.setItem(DESIGN_STORAGE_KEY, designId);
+  } catch (err) {
+    // localStorage can be unavailable (e.g. some file:// contexts) — non-fatal.
+  }
 }
 
 /** @param {string} layoutId */
@@ -98,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   buildLayoutGrid();
 
   let initialLayoutId = LAYOUT_PRESETS[0].id;
+  let initialDesignId = STRIP_DESIGNS[0].id;
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved && LAYOUT_PRESETS.some((l) => l.id === saved)) {
@@ -105,6 +124,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (err) {
     // ignore
+  }
+  try {
+    const savedDesign = window.localStorage.getItem(DESIGN_STORAGE_KEY);
+    if (savedDesign && STRIP_DESIGNS.some((design) => design.id === savedDesign)) {
+      initialDesignId = savedDesign;
+    }
+  } catch (err) {
+    // ignore
+  }
+  const requestedDesign = new URLSearchParams(window.location.search).get('design');
+  if (requestedDesign && STRIP_DESIGNS.some((design) => design.id === requestedDesign)) {
+    initialDesignId = requestedDesign;
+  }
+  selectedDesignId = initialDesignId;
+  const designSelect = document.getElementById('designSelect');
+  if (designSelect) {
+    designSelect.value = initialDesignId;
+    designSelect.addEventListener('change', () => selectDesign(designSelect.value));
   }
   selectLayout(initialLayoutId);
 

@@ -19,3 +19,11 @@ const LAYOUT_PRESETS = Object.freeze([
   { id: 'polaroid4', name: 'Polaroid 4', totalShots: 4, styleClass: 'layout-polaroid', shape: 'square' },
   { id: 'cinema8', name: 'Cinema 8', totalShots: 8, styleClass: 'layout-cinema', shape: 'wide' },
 ]);
+
+const STRIP_DESIGNS = Object.freeze([
+  { id: 'rose', name: 'Sweetheart', background: '#fff0f4', accent: '#f18ba9', frame: '#ffffff' },
+  { id: 'sky', name: 'Cloud nine', background: '#eef8ff', accent: '#83c7eb', frame: '#ffffff' },
+  { id: 'lavender', name: 'Dreamy lilac', background: '#f3efff', accent: '#aa91e8', frame: '#ffffff' },
+  { id: 'mint', name: 'Minty fresh', background: '#eaf8f1', accent: '#77c9aa', frame: '#ffffff' },
+  { id: 'classic', name: 'Cream soda', background: '#fff8e9', accent: '#e4b764', frame: '#ffffff' },
+]);

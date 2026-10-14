@@ -176,6 +176,61 @@
   flex-wrap: wrap;
 }
 
+.sticker-station {
+  width: min(280px, 88vw);
+  padding: 15px;
+  border: 2px dashed rgba(48, 36, 59, 0.25);
+  border-radius: 20px;
+  background: #fff8fb;
+  text-align: center;
+}
+.sticker-station-title {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.sticker-help,
+.sticker-note {
+  margin: 5px 0 10px;
+  color: #82758b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.sticker-tray {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.sticker-option {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(48, 36, 59, 0.14);
+  border-radius: 13px;
+  background: #fff;
+  cursor: grab;
+  font-size: 23px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.sticker-option:hover {
+  background: #fff1c7;
+  transform: translateY(-2px) rotate(-4deg);
+}
+.sticker-option:active { cursor: grabbing; }
+.sticker-option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.sticker-note {
+  min-height: 1.1em;
+  margin: 9px 0 0;
+}
+
 .control-label {
   display: flex;
   flex-direction: column;

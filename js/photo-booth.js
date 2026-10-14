@@ -36,6 +36,11 @@ class PhotoBooth {
     this.state = BoothState.IDLE;
     /** @type {string[]} */
     this.shots = [];
+    /** @type {{id: number, emoji: string, x: number, y: number}[][]} */
+    this.stickers = [];
+    this.nextStickerId = 1;
+    this.nextStickerTarget = 0;
+    this.designId = this._getDesignFromUrl();
 
     this._cacheDom();
 
@@ -43,13 +48,16 @@ class PhotoBooth {
     this.processor = new VintageProcessor(this.dom.noiseCanvas);
     this.filmStrip = new FilmStrip(this.dom.filmStripEl, this.dom.stripDate);
     this.filmStrip.onBestShotSelected = (index) => this._markBestShot(index);
+    this.filmStrip.onStickerRemoved = (index, stickerId) => this._removeSticker(index, stickerId);
     this.currentFilter = 'none';
     this.countdownSeconds = SESSION_CONFIG.DEFAULT_COUNTDOWN_SECONDS;
     this.bestShotIndex = -1;
     this.layout = null;
 
     this._bindEvents();
+    this.dom.designSelect.value = this.designId;
     this._applyFilterToPreview();
+    this._applyDesign();
     this._setLayout(this._getLayoutFromUrl(), false);
     window.setTimeout(() => {
       void this._enableCamera();
@@ -66,6 +74,19 @@ class PhotoBooth {
   }
 
   /** @private */
+  _getDesignFromUrl() {
+    const requestedDesign = new URLSearchParams(window.location.search).get('design');
+    if (STRIP_DESIGNS.some((design) => design.id === requestedDesign)) return requestedDesign;
+    try {
+      const savedDesign = window.localStorage.getItem('stickerStudioDesign');
+      if (STRIP_DESIGNS.some((design) => design.id === savedDesign)) return savedDesign;
+    } catch (err) {
+      // localStorage can be unavailable in file:// contexts.
+    }
+    return STRIP_DESIGNS[0].id;
+  }
+
+  /** @private */
   _cacheDom() {
     const byId = (id) => document.getElementById(id);
     this.dom = {
@@ -79,6 +100,9 @@ class PhotoBooth {
       startBtn: byId('startBtn'),
       retakeBtn: byId('retakeBtn'),
       filterSelect: byId('filterSelect'),
+      designSelect: byId('designSelect'),
+      stickerTray: byId('stickerTray'),
+      stickerNote: byId('stickerNote'),
       layoutGrid: byId('layoutGrid'),
       downloadPhotoBtn: byId('downloadPhotoBtn'),
       gifBtn: byId('gifBtn'),
@@ -102,6 +126,37 @@ class PhotoBooth {
     this.dom.downloadPhotoBtn.addEventListener('click', () => this._onDownloadPhotoPressed());
     this.dom.gifBtn.addEventListener('click', () => this._onDownloadGifPressed());
     this.dom.filterSelect.addEventListener('change', (e) => this._onFilterChanged(e.target.value));
+    this.dom.designSelect.addEventListener('change', (e) => this._setDesign(e.target.value));
+    this.dom.stickerTray.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-sticker]');
+      if (!button) return;
+      this._addStickerToNextShot(button.dataset.sticker);
+    });
+    this.dom.stickerTray.addEventListener('dragstart', (event) => {
+      const button = event.target.closest('[data-sticker]');
+      if (!button || !event.dataTransfer) return;
+      event.dataTransfer.setData('text/plain', button.dataset.sticker);
+      event.dataTransfer.effectAllowed = 'copy';
+    });
+    this.dom.filmStripEl.addEventListener('dragover', (event) => {
+      const slot = event.target.closest('[data-slot]');
+      if (!slot || !event.dataTransfer?.types.includes('text/plain')) return;
+      event.preventDefault();
+      slot.classList.add('sticker-target');
+    });
+    this.dom.filmStripEl.addEventListener('dragleave', (event) => {
+      const slot = event.target.closest('[data-slot]');
+      if (slot && !slot.contains(event.relatedTarget)) slot.classList.remove('sticker-target');
+    });
+    this.dom.filmStripEl.addEventListener('drop', (event) => {
+      const slot = event.target.closest('[data-slot]');
+      if (!slot) return;
+      event.preventDefault();
+      slot.classList.remove('sticker-target');
+      const emoji = event.dataTransfer?.getData('text/plain');
+      const index = Number(slot.dataset.slot);
+      if (emoji) this._addSticker(index, emoji, event.clientX, event.clientY);
+    });
     if (this.dom.timerToggle) {
       this.dom.timerToggle.addEventListener('click', (event) => {
         const btn = event.target.closest('[data-seconds]');
@@ -227,6 +282,7 @@ class PhotoBooth {
       const dataUrl = this.processor.captureFrame(this.dom.video, this.dom.captureCanvas, this.currentFilter);
       this.shots.push(dataUrl);
       this.filmStrip.placeShot(i, dataUrl);
+      this.filmStrip.renderStickers(i, this.stickers[i] || []);
       this._updateExportButtons();
       this.dom.statusLine.textContent = `Shot ${i + 1} captured.`;
       await this._sleep(SESSION_CONFIG.POST_SHOT_DELAY_MS);
@@ -273,6 +329,8 @@ class PhotoBooth {
   /** @private */
   _reset() {
     this.shots = [];
+    this.stickers = Array.from({ length: this.layout.totalShots }, () => []);
+    this.nextStickerTarget = 0;
     this.bestShotIndex = -1;
     this.filmStrip.reset(this.layout.totalShots);
     this.filmStrip.markBestShot(-1);
@@ -280,6 +338,7 @@ class PhotoBooth {
     this._updateExportButtons();
     this.dom.frameCounter.hidden = true;
     this.dom.statusLine.textContent = 'Camera ready. Press the shutter when you are.';
+    this.dom.stickerNote.textContent = 'Take your photos first, then decorate your strip.';
     this.dom.startBtn.textContent = 'Begin Countdown';
     this._setState(BoothState.READY);
   }
@@ -289,7 +348,7 @@ class PhotoBooth {
     const hasShots = this.shots.length > 0;
     const canDownloadStrip = this.layout && this.shots.length === this.layout.totalShots;
     this.dom.downloadPhotoBtn.disabled = !hasShots;
-    this.dom.gifBtn.disabled = this.shots.length < 2;
+    this.dom.gifBtn.disabled = !canDownloadStrip || this.shots.length < 2;
     this.dom.downloadBtn.disabled = !canDownloadStrip;
     this.dom.downloadBtn.classList.toggle('ready', Boolean(canDownloadStrip));
   }
@@ -297,7 +356,7 @@ class PhotoBooth {
   /** @private */
   async _onDownloadPressed() {
     if (this.shots.length < this.layout.totalShots) return;
-    const dataUrl = await this.processor.buildStrip(this.shots, this.dom.stripCanvas, this.bestShotIndex);
+    const dataUrl = await this.processor.buildStrip(this.shots, this.dom.stripCanvas, this._getStripOptions());
     this._triggerDownload(dataUrl, 'sticker-studio-strip.png');
   }
 
@@ -315,7 +374,7 @@ class PhotoBooth {
         button.setAttribute('aria-selected', selected ? 'true' : 'false');
       });
     }
-    this.dom.filmStripEl.className = `film-strip ${nextLayout.styleClass}`;
+    this.dom.filmStripEl.className = `film-strip ${nextLayout.styleClass} theme-${this.designId}`;
     const frameTotal = document.getElementById('frameTotal');
     if (frameTotal) frameTotal.textContent = String(nextLayout.totalShots);
     const stripStyleLabel = document.getElementById('stripStyleLabel');
@@ -347,20 +406,90 @@ class PhotoBooth {
 
   /** @private */
   async _onDownloadGifPressed() {
-    if (this.shots.length < 2) {
-      this.dom.statusLine.textContent = 'Capture at least two frames to build a GIF.';
+    if (this.shots.length !== this.layout.totalShots || this.shots.length < 2) {
+      this.dom.statusLine.textContent = 'Complete your photo strip before downloading its GIF.';
       return;
     }
 
     try {
-      this.dom.statusLine.textContent = 'Building your GIF...';
-      const blob = await this.processor.buildGif(this.shots, this.currentFilter);
+      this.dom.statusLine.textContent = 'Building your animated photo strip...';
+      const blob = await this.processor.buildGif(this.shots, this._getStripOptions());
       const objectUrl = URL.createObjectURL(blob);
-      this._triggerDownload(objectUrl, 'sticker-studio.gif', true);
-      this.dom.statusLine.textContent = 'GIF export ready.';
+      this._triggerDownload(objectUrl, 'sticker-studio-strip.gif', true);
+      this.dom.statusLine.textContent = 'Your animated photo strip is ready.';
     } catch (err) {
       this.dom.statusLine.textContent = `Could not create GIF: ${err.message}`;
     }
+  }
+
+  /** @private */
+  _setDesign(designId) {
+    if (!STRIP_DESIGNS.some((design) => design.id === designId)) return;
+    this.designId = designId;
+    this._applyDesign();
+    try {
+      window.localStorage.setItem('stickerStudioDesign', designId);
+    } catch (err) {
+      // localStorage can be unavailable in file:// contexts.
+    }
+  }
+
+  /** @private */
+  _applyDesign() {
+    this.dom.filmStripEl.classList.remove(...STRIP_DESIGNS.map((design) => `theme-${design.id}`));
+    this.dom.filmStripEl.classList.add(`theme-${this.designId}`);
+  }
+
+  /** @private */
+  _getStripOptions() {
+    return {
+      bestShotIndex: this.bestShotIndex,
+      designId: this.designId,
+      stickers: this.stickers,
+      footerText: this.filmStrip.dateEl.textContent,
+    };
+  }
+
+  /** @private */
+  _addStickerToNextShot(emoji) {
+    if (this.shots.length === 0) {
+      this.dom.stickerNote.textContent = 'Take your photos first, then decorate your strip.';
+      return;
+    }
+    const index = this.nextStickerTarget % this.shots.length;
+    this.nextStickerTarget += 1;
+    const existing = this.stickers[index] || [];
+    const x = 0.2 + (existing.length % 4) * 0.19;
+    const y = 0.2 + (Math.floor(existing.length / 4) % 3) * 0.22;
+    this._storeSticker(index, emoji, x, y);
+  }
+
+  /** @private */
+  _addSticker(index, emoji, clientX, clientY) {
+    if (index >= this.shots.length) {
+      this.dom.stickerNote.textContent = 'Drop stickers onto a photo you have taken.';
+      return;
+    }
+    const slot = this.dom.filmStripEl.querySelector(`[data-slot="${index}"]`);
+    const bounds = slot.getBoundingClientRect();
+    const x = Math.min(0.92, Math.max(0.08, (clientX - bounds.left) / bounds.width));
+    const y = Math.min(0.92, Math.max(0.08, (clientY - bounds.top) / bounds.height));
+    this._storeSticker(index, emoji, x, y);
+  }
+
+  /** @private */
+  _storeSticker(index, emoji, x, y) {
+    if (!this.stickers[index]) this.stickers[index] = [];
+    this.stickers[index].push({ id: this.nextStickerId++, emoji, x, y });
+    this.filmStrip.renderStickers(index, this.stickers[index]);
+    this.dom.stickerNote.textContent = `Sticker added to frame ${index + 1}. Tap it on the strip to remove.`;
+  }
+
+  /** @private */
+  _removeSticker(index, stickerId) {
+    this.stickers[index] = (this.stickers[index] || []).filter((sticker) => sticker.id !== stickerId);
+    this.filmStrip.renderStickers(index, this.stickers[index]);
+    this.dom.stickerNote.textContent = `Sticker removed from frame ${index + 1}.`;
   }
 
   /** @private */

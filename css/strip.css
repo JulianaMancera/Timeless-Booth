@@ -99,18 +99,6 @@
   box-shadow: 0 0 0 3px var(--amber);
 }
 
-.frame-stamp {
-  position: absolute;
-  right: 5px;
-  bottom: 4px;
-  padding: 2px 5px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.82);
-  color: rgba(48, 36, 59, 0.75);
-  font-size: 0.52rem;
-  font-weight: 900;
-}
-
 .strip-footer {
   margin-top: 4px;
   color: var(--ink);
@@ -129,6 +117,54 @@
 .film-strip.layout-retro { width: 200px; background: linear-gradient(180deg, #f1edff, #fff); }
 .film-strip.layout-polaroid { width: 176px; border-radius: 24px; background: linear-gradient(180deg, #fff, #fff1e8); }
 .film-strip.layout-cinema { width: 210px; border-radius: 18px; background: linear-gradient(180deg, #eef8ff, #f1edff); }
+
+.film-strip.theme-rose { --strip-background: #fff0f4; --strip-accent: #f18ba9; }
+.film-strip.theme-sky { --strip-background: #eef8ff; --strip-accent: #83c7eb; }
+.film-strip.theme-lavender { --strip-background: #f3efff; --strip-accent: #aa91e8; }
+.film-strip.theme-mint { --strip-background: #eaf8f1; --strip-accent: #77c9aa; }
+.film-strip.theme-classic { --strip-background: #fff8e9; --strip-accent: #e4b764; }
+.film-strip[class*="theme-"] {
+  background: var(--strip-background);
+}
+.film-strip[class*="theme-"]::before,
+.film-strip[class*="theme-"]::after {
+  background-image: radial-gradient(circle, var(--strip-accent) 3px, transparent 3.5px);
+}
+.film-strip[class*="theme-"] .frame-slot {
+  background: color-mix(in srgb, var(--strip-accent) 19%, white);
+}
+.film-strip[class*="theme-"] .strip-footer {
+  color: var(--ink);
+}
+
+.placed-sticker {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(48, 36, 59, 0.15);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.68);
+  cursor: pointer;
+  font-size: 23px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+.placed-sticker:hover {
+  background: #fff;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+.placed-sticker:focus-visible {
+  outline: 2px solid var(--ink);
+  box-shadow: var(--focus-ring);
+}
+.frame-slot.sticker-target {
+  outline: 3px dashed var(--strip-accent, var(--safelight));
+  outline-offset: 2px;
+}
 
 .download-btn {
   padding: 14px 26px;

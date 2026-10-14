@@ -54,6 +54,16 @@
               <option value="dreamy">Dreamy</option>
             </select>
           </label>
+          <label class="control-label" for="designSelect">
+            <span>Strip design</span>
+            <select class="filter-select" id="designSelect" aria-label="Choose a strip design">
+              <option value="rose">Sweetheart</option>
+              <option value="sky">Cloud nine</option>
+              <option value="lavender">Dreamy lilac</option>
+              <option value="mint">Minty fresh</option>
+              <option value="classic">Cream soda</option>
+            </select>
+          </label>
           <div class="control-label">
             <span>Timer</span>
             <div class="timer-toggle" id="timerToggle" role="group" aria-label="Choose countdown timer">
@@ -62,7 +72,7 @@
             </div>
           </div>
           <button class="ghost-btn" id="downloadPhotoBtn" type="button" disabled>Download Image</button>
-          <button class="ghost-btn" id="gifBtn" type="button" disabled>Download GIF</button>
+          <button class="ghost-btn" id="gifBtn" type="button" disabled>Download Strip GIF</button>
         </div>
         <select class="camera-select" id="cameraSelect" hidden aria-label="Choose camera"></select>
 
@@ -80,6 +90,19 @@
           <div class="strip-footer" id="stripDate">STICKER STUDIO</div>
         </div>
         <button class="download-btn" id="downloadBtn" type="button">Save my strip ↓</button>
+        <div class="sticker-station">
+          <div class="sticker-station-title">Add a little extra ✿</div>
+          <p class="sticker-help">Drag a sticker onto any photo, or tap one to add it.</p>
+          <div class="sticker-tray" id="stickerTray" role="group" aria-label="Photo stickers">
+            <button class="sticker-option" type="button" draggable="true" data-sticker="🌸" aria-label="Add flower sticker">🌸</button>
+            <button class="sticker-option" type="button" draggable="true" data-sticker="💖" aria-label="Add heart sticker">💖</button>
+            <button class="sticker-option" type="button" draggable="true" data-sticker="⭐" aria-label="Add star sticker">⭐</button>
+            <button class="sticker-option" type="button" draggable="true" data-sticker="🐻" aria-label="Add bear sticker">🐻</button>
+            <button class="sticker-option" type="button" draggable="true" data-sticker="🍓" aria-label="Add strawberry sticker">🍓</button>
+            <button class="sticker-option" type="button" draggable="true" data-sticker="✨" aria-label="Add sparkle sticker">✨</button>
+          </div>
+          <div class="sticker-note" id="stickerNote" role="status" aria-live="polite">Take your photos first, then decorate your strip.</div>
+        </div>
       </div>
     </div>
 

@@ -330,6 +330,28 @@
   font-weight: 600;
 }
 
+.design-choice {
+  display: flex;
+  width: min(240px, 100%);
+  flex-direction: column;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+.design-choice select {
+  padding: 10px 13px;
+  border: 2px solid var(--ink);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+.design-choice select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .how-it-works {
   width: 100%;
   max-width: 1000px;
