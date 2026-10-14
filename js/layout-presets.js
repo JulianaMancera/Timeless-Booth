@@ -15,9 +15,9 @@ const LAYOUT_PRESETS = Object.freeze([
   { id: 'mini2', name: 'Mini 2', totalShots: 2, styleClass: 'layout-mini', shape: 'landscape' },
   { id: 'tall6', name: 'Tall 6', totalShots: 6, styleClass: 'layout-tall', shape: 'landscape' },
   { id: 'film5', name: 'Film 5', totalShots: 5, styleClass: 'layout-film', shape: 'landscape' },
-  { id: 'retro7', name: 'Retro 7', totalShots: 7, styleClass: 'layout-retro', shape: 'portrait' },
   { id: 'polaroid4', name: 'Polaroid 4', totalShots: 4, styleClass: 'layout-polaroid', shape: 'square' },
-  { id: 'cinema8', name: 'Cinema 8', totalShots: 8, styleClass: 'layout-cinema', shape: 'wide' },
+  { id: 'grid4', name: 'Sweet Grid 4', totalShots: 4, styleClass: 'layout-grid4', shape: 'grid' },
+  { id: 'grid6', name: 'Sticker Collage 6', totalShots: 6, styleClass: 'layout-grid6', shape: 'grid' },
 ]);
 
 const STRIP_DESIGNS = Object.freeze([

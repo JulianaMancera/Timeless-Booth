@@ -72,7 +72,7 @@
             </div>
           </div>
           <button class="ghost-btn" id="downloadPhotoBtn" type="button" disabled>Download Image</button>
-          <button class="ghost-btn" id="gifBtn" type="button" disabled>Download Strip GIF</button>
+          <button class="ghost-btn" id="videoBtn" type="button" disabled>Download Strip Video</button>
         </div>
         <select class="camera-select" id="cameraSelect" hidden aria-label="Choose camera"></select>
 
@@ -92,7 +92,7 @@
         <button class="download-btn" id="downloadBtn" type="button">Save my strip ↓</button>
         <div class="sticker-station">
           <div class="sticker-station-title">Add a little extra ✿</div>
-          <p class="sticker-help">Drag a sticker onto any photo, or tap one to add it.</p>
+          <p class="sticker-help">Stickers are optional. Drag one onto any photo, then move it between photos or click it to remove.</p>
           <div class="sticker-tray" id="stickerTray" role="group" aria-label="Photo stickers">
             <button class="sticker-option" type="button" draggable="true" data-sticker="🌸" aria-label="Add flower sticker">🌸</button>
             <button class="sticker-option" type="button" draggable="true" data-sticker="💖" aria-label="Add heart sticker">💖</button>
@@ -115,7 +115,6 @@
 
   <!-- Load order matters: each class attaches to the shared top-level
        scope, so dependencies must load before whatever consumes them. -->
-  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
   <script src="js/layout-presets.js"></script>
   <script src="js/camera-manager.js"></script>
   <script src="js/vintage-processor.js"></script>

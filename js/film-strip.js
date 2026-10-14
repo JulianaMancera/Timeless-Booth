@@ -61,11 +61,16 @@ class FilmStrip {
       button.type = 'button';
       button.className = 'placed-sticker';
       button.textContent = sticker.emoji;
-      button.title = `Remove ${sticker.emoji} sticker from frame ${index + 1}`;
+      button.dataset.stickerId = String(sticker.id);
+      button.title = `Drag to move ${sticker.emoji}; click to remove`;
       button.setAttribute('aria-label', button.title);
       button.style.left = `${sticker.x * 100}%`;
       button.style.top = `${sticker.y * 100}%`;
       button.addEventListener('click', () => {
+        if (button.dataset.suppressClick === 'true') {
+          delete button.dataset.suppressClick;
+          return;
+        }
         if (typeof this.onStickerRemoved === 'function') {
           this.onStickerRemoved(index, sticker.id);
         }

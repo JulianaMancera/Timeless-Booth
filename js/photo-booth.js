@@ -27,6 +27,7 @@ const SESSION_CONFIG = Object.freeze({
   DEFAULT_COUNTDOWN_SECONDS: 3,
   FLASH_DURATION_MS: 70,
   POST_SHOT_DELAY_MS: 600,
+  MAX_PHOTOS: 6,
 });
 
 // LAYOUT_PRESETS now lives in js/layout-presets.js, loaded before this file.
@@ -53,6 +54,7 @@ class PhotoBooth {
     this.countdownSeconds = SESSION_CONFIG.DEFAULT_COUNTDOWN_SECONDS;
     this.bestShotIndex = -1;
     this.layout = null;
+    this.activeStickerDrag = null;
 
     this._bindEvents();
     this.dom.designSelect.value = this.designId;
@@ -105,7 +107,7 @@ class PhotoBooth {
       stickerNote: byId('stickerNote'),
       layoutGrid: byId('layoutGrid'),
       downloadPhotoBtn: byId('downloadPhotoBtn'),
-      gifBtn: byId('gifBtn'),
+      videoBtn: byId('videoBtn'),
       timerToggle: byId('timerToggle'),
       cameraSelect: byId('cameraSelect'),
       statusLine: byId('statusLine'),
@@ -124,7 +126,7 @@ class PhotoBooth {
     this.dom.retakeBtn.addEventListener('click', () => this._reset());
     this.dom.downloadBtn.addEventListener('click', () => this._onDownloadPressed());
     this.dom.downloadPhotoBtn.addEventListener('click', () => this._onDownloadPhotoPressed());
-    this.dom.gifBtn.addEventListener('click', () => this._onDownloadGifPressed());
+    this.dom.videoBtn.addEventListener('click', () => this._onDownloadVideoPressed());
     this.dom.filterSelect.addEventListener('change', (e) => this._onFilterChanged(e.target.value));
     this.dom.designSelect.addEventListener('change', (e) => this._setDesign(e.target.value));
     this.dom.stickerTray.addEventListener('click', (event) => {
@@ -157,6 +159,10 @@ class PhotoBooth {
       const index = Number(slot.dataset.slot);
       if (emoji) this._addSticker(index, emoji, event.clientX, event.clientY);
     });
+    this.dom.filmStripEl.addEventListener('pointerdown', (event) => this._beginStickerDrag(event));
+    document.addEventListener('pointermove', (event) => this._moveStickerDrag(event));
+    document.addEventListener('pointerup', (event) => this._finishStickerDrag(event));
+    document.addEventListener('pointercancel', (event) => this._finishStickerDrag(event));
     if (this.dom.timerToggle) {
       this.dom.timerToggle.addEventListener('click', (event) => {
         const btn = event.target.closest('[data-seconds]');
@@ -273,6 +279,7 @@ class PhotoBooth {
     this.dom.frameCounter.hidden = false;
 
     for (let i = 0; i < this.layout.totalShots; i++) {
+      if (this.shots.length >= SESSION_CONFIG.MAX_PHOTOS) break;
       this.dom.shotNum.textContent = String(i + 1);
       this.dom.statusLine.textContent = `Shot ${i + 1} of ${this.layout.totalShots} — get ready...`;
       await this._countdown(this.countdownSeconds);
@@ -348,7 +355,7 @@ class PhotoBooth {
     const hasShots = this.shots.length > 0;
     const canDownloadStrip = this.layout && this.shots.length === this.layout.totalShots;
     this.dom.downloadPhotoBtn.disabled = !hasShots;
-    this.dom.gifBtn.disabled = !canDownloadStrip || this.shots.length < 2;
+    this.dom.videoBtn.disabled = !canDownloadStrip || this.shots.length < 2;
     this.dom.downloadBtn.disabled = !canDownloadStrip;
     this.dom.downloadBtn.classList.toggle('ready', Boolean(canDownloadStrip));
   }
@@ -363,7 +370,12 @@ class PhotoBooth {
   /** @private */
   _setLayout(layoutId, resetSession = true) {
     const nextLayout = LAYOUT_PRESETS.find((layout) => layout.id === layoutId);
-    if (!nextLayout || (this.layout && this.layout.id === nextLayout.id)) return;
+    if (!nextLayout) return;
+    if (nextLayout.totalShots > SESSION_CONFIG.MAX_PHOTOS) {
+      this.dom.statusLine.textContent = `Photo strips are limited to ${SESSION_CONFIG.MAX_PHOTOS} photos.`;
+      return;
+    }
+    if (this.layout && this.layout.id === nextLayout.id) return;
     if (this.state === BoothState.CAPTURING) return;
 
     this.layout = nextLayout;
@@ -405,20 +417,23 @@ class PhotoBooth {
   }
 
   /** @private */
-  async _onDownloadGifPressed() {
+  async _onDownloadVideoPressed() {
     if (this.shots.length !== this.layout.totalShots || this.shots.length < 2) {
-      this.dom.statusLine.textContent = 'Complete your photo strip before downloading its GIF.';
+      this.dom.statusLine.textContent = 'Complete your photo strip before downloading its video.';
       return;
     }
 
     try {
-      this.dom.statusLine.textContent = 'Building your animated photo strip...';
-      const blob = await this.processor.buildGif(this.shots, this._getStripOptions());
+      this.dom.videoBtn.disabled = true;
+      this.dom.statusLine.textContent = 'Recording your animated photo strip...';
+      const blob = await this.processor.buildVideo(this.shots, this._getStripOptions());
       const objectUrl = URL.createObjectURL(blob);
-      this._triggerDownload(objectUrl, 'sticker-studio-strip.gif', true);
-      this.dom.statusLine.textContent = 'Your animated photo strip is ready.';
+      this._triggerDownload(objectUrl, 'sticker-studio-strip.webm', true);
+      this.dom.statusLine.textContent = 'Your photo strip video is ready.';
     } catch (err) {
-      this.dom.statusLine.textContent = `Could not create GIF: ${err.message}`;
+      this.dom.statusLine.textContent = `Could not create video: ${err.message}`;
+    } finally {
+      this._updateExportButtons();
     }
   }
 
@@ -447,6 +462,7 @@ class PhotoBooth {
       designId: this.designId,
       stickers: this.stickers,
       footerText: this.filmStrip.dateEl.textContent,
+      layoutId: this.layout.id,
     };
   }
 
@@ -482,7 +498,7 @@ class PhotoBooth {
     if (!this.stickers[index]) this.stickers[index] = [];
     this.stickers[index].push({ id: this.nextStickerId++, emoji, x, y });
     this.filmStrip.renderStickers(index, this.stickers[index]);
-    this.dom.stickerNote.textContent = `Sticker added to frame ${index + 1}. Tap it on the strip to remove.`;
+    this.dom.stickerNote.textContent = `Sticker added to frame ${index + 1}. Drag it to move, or tap it to remove.`;
   }
 
   /** @private */
@@ -490,6 +506,83 @@ class PhotoBooth {
     this.stickers[index] = (this.stickers[index] || []).filter((sticker) => sticker.id !== stickerId);
     this.filmStrip.renderStickers(index, this.stickers[index]);
     this.dom.stickerNote.textContent = `Sticker removed from frame ${index + 1}.`;
+  }
+
+  /** @private */
+  _beginStickerDrag(event) {
+    const button = event.target.closest('.placed-sticker');
+    if (!button || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    const slot = button.closest('[data-slot]');
+    const stickerId = Number(button.dataset.stickerId);
+    if (!slot || !Number.isInteger(stickerId)) return;
+    const sourceIndex = Number(slot.dataset.slot);
+    const sticker = (this.stickers[sourceIndex] || []).find((item) => item.id === stickerId);
+    if (!sticker) return;
+
+    event.preventDefault();
+    const preview = button.cloneNode(true);
+    preview.classList.add('sticker-drag-preview');
+    preview.style.position = 'fixed';
+    preview.style.left = `${event.clientX}px`;
+    preview.style.top = `${event.clientY}px`;
+    document.body.appendChild(preview);
+    button.style.opacity = '0.35';
+    this.activeStickerDrag = {
+      pointerId: event.pointerId,
+      sourceIndex,
+      stickerId,
+      button,
+      preview,
+      moved: false,
+    };
+    button.setPointerCapture(event.pointerId);
+  }
+
+  /** @private */
+  _moveStickerDrag(event) {
+    const drag = this.activeStickerDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    drag.moved = true;
+    drag.preview.style.left = `${event.clientX}px`;
+    drag.preview.style.top = `${event.clientY}px`;
+  }
+
+  /** @private */
+  _finishStickerDrag(event) {
+    const drag = this.activeStickerDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.frame-slot[data-slot]');
+    const targetIndex = target && this.dom.filmStripEl.contains(target)
+      ? Number(target.dataset.slot)
+      : -1;
+
+    drag.preview.remove();
+    drag.button.style.opacity = '';
+    this.activeStickerDrag = null;
+    if (!drag.moved) return;
+    if (targetIndex < 0 || targetIndex >= this.shots.length) {
+      drag.button.dataset.suppressClick = 'true';
+      window.setTimeout(() => delete drag.button.dataset.suppressClick, 0);
+      return;
+    }
+
+    const bounds = target.getBoundingClientRect();
+    const x = Math.min(0.95, Math.max(0.05, (event.clientX - bounds.left) / bounds.width));
+    const y = Math.min(0.95, Math.max(0.05, (event.clientY - bounds.top) / bounds.height));
+    const source = this.stickers[drag.sourceIndex] || [];
+    const stickerIndex = source.findIndex((item) => item.id === drag.stickerId);
+    if (stickerIndex < 0) return;
+    const [sticker] = source.splice(stickerIndex, 1);
+    sticker.x = x;
+    sticker.y = y;
+    if (!this.stickers[targetIndex]) this.stickers[targetIndex] = [];
+    this.stickers[targetIndex].push(sticker);
+    this.filmStrip.renderStickers(drag.sourceIndex, source);
+    if (targetIndex !== drag.sourceIndex) {
+      this.filmStrip.renderStickers(targetIndex, this.stickers[targetIndex]);
+    }
+    this.dom.stickerNote.textContent = `Sticker moved to frame ${targetIndex + 1}.`;
   }
 
   /** @private */
@@ -506,7 +599,7 @@ class PhotoBooth {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    if (revokeUrl) URL.revokeObjectURL(href);
+    if (revokeUrl) window.setTimeout(() => URL.revokeObjectURL(href), 1000);
   }
 
   /** @private */

@@ -142,7 +142,8 @@ class VintageProcessor {
    *   bestShotIndex?: number,
    *   designId?: string,
    *   stickers?: {emoji: string, x: number, y: number}[][],
-   *   footerText?: string
+   *   footerText?: string,
+   *   layoutId?: string
    * }} options
    * @returns {Promise<string>} PNG data URL of the finished strip
    */
@@ -153,59 +154,98 @@ class VintageProcessor {
   }
 
   /**
-   * Builds a GIF of the entire photo strip, highlighting each photo in turn.
+   * Records the complete strip animation as a browser-supported WebM video.
    * @param {string[]} shotDataUrls
    * @param {{
    *   bestShotIndex?: number,
    *   designId?: string,
    *   stickers?: {emoji: string, x: number, y: number}[][],
-   *   footerText?: string
+   *   footerText?: string,
+   *   layoutId?: string
    * }} options
    * @returns {Promise<Blob>}
    */
-  async buildGif(shotDataUrls, options = {}) {
-    if (typeof window.GIF === 'undefined') {
-      throw new Error('GIF export is unavailable because the GIF library did not load.');
+  async buildVideo(shotDataUrls, options = {}) {
+    if (typeof MediaRecorder === 'undefined') {
+      throw new Error('Video export is not supported by this browser.');
+    }
+    const loadedFrames = await Promise.all(shotDataUrls.map((src) => this._loadImage(src)));
+    if (typeof MediaRecorder.isTypeSupported !== 'function') {
+      throw new Error('This browser cannot check video encoding support.');
+    }
+    const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+      .find((type) => MediaRecorder.isTypeSupported(type));
+    if (!mimeType) throw new Error('This browser cannot encode WebM video.');
+
+    const geometry = this._getStripGeometry(loadedFrames.length, options);
+    const scale = Math.min(1, 900 / geometry.stripW, 1800 / geometry.stripH);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(geometry.stripW * scale);
+    canvas.height = Math.round(geometry.stripH * scale);
+    if (typeof canvas.captureStream !== 'function') {
+      throw new Error('Canvas video recording is not supported by this browser.');
     }
 
-    const loadedFrames = await Promise.all(shotDataUrls.map((src) => this._loadImage(src)));
-    const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
-    const scale = 0.7;
-    const width = Math.round((frameW + pad * 2) * scale);
-    const height = Math.round((pad + (frameH + gap) * loadedFrames.length + footerH) * scale);
-    return new Promise((resolve, reject) => {
-      const gif = new window.GIF({
-        workers: 2,
-        quality: 8,
-        width,
-        height,
-        workerScript: 'js/gif.worker.js',
+    const stream = canvas.captureStream(24);
+    let recorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
+    } catch (err) {
+      stream.getTracks().forEach((track) => track.stop());
+      throw err;
+    }
+    const chunks = [];
+    const recording = new Promise((resolve, reject) => {
+      recorder.addEventListener('dataavailable', (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
       });
-
-      loadedFrames.forEach((_, highlightIndex) => {
-        const frameCanvas = document.createElement('canvas');
-        frameCanvas.width = width;
-        frameCanvas.height = height;
-        this._drawStrip(frameCanvas, loadedFrames, {
-          ...options,
-          highlightIndex,
-          scale,
-        });
-        gif.addFrame(frameCanvas, { copy: true, delay: 650 });
-      });
-
-      gif.on('finished', (blob) => resolve(blob));
-      gif.on('abort', () => reject(new Error('GIF export was interrupted.')));
-      gif.render();
+      recorder.addEventListener('stop', () => {
+        resolve(new Blob(chunks, { type: recorder.mimeType || mimeType }));
+      }, { once: true });
+      recorder.addEventListener('error', (event) => {
+        reject(event.error || new Error('The browser could not record the strip video.'));
+      }, { once: true });
     });
+
+    try {
+      recorder.start();
+      for (let highlightIndex = 0; highlightIndex < loadedFrames.length; highlightIndex++) {
+        this._drawStrip(canvas, loadedFrames, { ...options, highlightIndex, scale });
+        await new Promise((resolve) => setTimeout(resolve, 650));
+      }
+      recorder.stop();
+      const blob = await recording;
+      if (blob.size === 0) throw new Error('The browser produced an empty video file.');
+      return blob;
+    } catch (err) {
+      if (recorder.state !== 'inactive') {
+        recorder.stop();
+        await recording.catch(() => {});
+      }
+      throw err;
+    } finally {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  }
+
+  /** @private */
+  _getStripGeometry(imageCount, options = {}) {
+    const layout = LAYOUT_PRESETS.find((item) => item.id === options.layoutId);
+    const isGrid = layout?.shape === 'grid';
+    const frameW = isGrid ? 360 : STRIP_LAYOUT.frameW;
+    const frameH = isGrid ? 360 : STRIP_LAYOUT.frameH;
+    const { pad, gap, footerH } = STRIP_LAYOUT;
+    const columns = isGrid ? 2 : 1;
+    const rows = Math.ceil(imageCount / columns);
+    const stripW = pad * 2 + columns * frameW + (columns - 1) * gap;
+    const footerY = pad + rows * frameH + rows * gap;
+    return { frameW, frameH, pad, gap, footerH, columns, stripW, footerY, stripH: footerY + footerH };
   }
 
   /** @private */
   _drawStrip(canvas, images, options = {}) {
-    const { frameW, frameH, pad, gap, footerH } = STRIP_LAYOUT;
-    const stripW = frameW + pad * 2;
-    const footerY = pad + (frameH + gap) * images.length;
-    const stripH = footerY + footerH;
+    const { frameW, frameH, pad, gap, footerH, columns, stripW, footerY, stripH } =
+      this._getStripGeometry(images.length, options);
     const scale = options.scale || 1;
     const ctx = canvas.getContext('2d');
     const design = STRIP_DESIGNS.find((item) => item.id === options.designId) || STRIP_DESIGNS[0];
@@ -256,37 +296,38 @@ class VintageProcessor {
     }
 
     images.forEach((img, i) => {
-      const y = pad + i * (frameH + gap);
+      const x = pad + (i % columns) * (frameW + gap);
+      const y = pad + Math.floor(i / columns) * (frameH + gap);
       ctx.fillStyle = design.frame;
       const mat = design.pattern === 'ticket' ? 8 : 5;
-      ctx.fillRect(pad - mat, y - mat, frameW + mat * 2, frameH + mat * 2);
+      ctx.fillRect(x - mat, y - mat, frameW + mat * 2, frameH + mat * 2);
       ctx.save();
       ctx.beginPath();
-      ctx.rect(pad, y, frameW, frameH);
+      ctx.rect(x, y, frameW, frameH);
       ctx.clip();
-      this._drawImageCover(ctx, img, pad, y, frameW, frameH);
+      this._drawImageCover(ctx, img, x, y, frameW, frameH);
 
       (options.stickers?.[i] || []).forEach((sticker) => {
         ctx.font = '38px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(sticker.emoji, pad + sticker.x * frameW, y + sticker.y * frameH);
+        ctx.fillText(sticker.emoji, x + sticker.x * frameW, y + sticker.y * frameH);
       });
       ctx.restore();
 
       ctx.strokeStyle = design.accent;
       ctx.lineWidth = options.highlightIndex === i ? 8 : (design.pattern === 'check' ? 6 : 3);
       ctx.setLineDash(design.pattern === 'star' ? [9, 6] : []);
-      ctx.strokeRect(pad, y, frameW, frameH);
+      ctx.strokeRect(x, y, frameW, frameH);
       ctx.setLineDash([]);
       if (design.pattern === 'dot') {
         ctx.lineWidth = 2;
         ctx.strokeStyle = design.frame;
-        ctx.strokeRect(pad + 7, y + 7, frameW - 14, frameH - 14);
+        ctx.strokeRect(x + 7, y + 7, frameW - 14, frameH - 14);
       } else if (design.pattern === 'ticket') {
         ctx.fillStyle = design.accent;
         for (let corner = 0; corner < 4; corner++) {
-          const cx = corner % 2 === 0 ? pad + 9 : pad + frameW - 9;
+          const cx = corner % 2 === 0 ? x + 9 : x + frameW - 9;
           const cy = corner < 2 ? y + 9 : y + frameH - 9;
           ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
         }
@@ -295,7 +336,7 @@ class VintageProcessor {
         ctx.font = '34px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
-        ctx.fillText('⭐', pad + frameW - 10, y + 8);
+        ctx.fillText('⭐', x + frameW - 10, y + 8);
       }
     });
 

@@ -218,14 +218,16 @@
 }
 
 .layout-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   justify-content: center;
   gap: 14px;
-  flex-wrap: wrap;
+  align-content: center;
 }
 
 .layout-card {
-  width: 130px;
+  width: 100%;
+  max-width: 150px;
   min-height: 156px;
   padding: 13px;
   border: 2px solid rgba(48, 36, 59, 0.16);
@@ -250,17 +252,21 @@
 }
 
 .layouts-stage {
-  display: flex;
+  display: grid;
   width: 100%;
   max-width: 1100px;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
   align-items: center;
-  justify-content: center;
-  gap: 35px;
-  flex-direction: column;
+  gap: 32px;
   margin: 24px auto 0;
 }
 
+.layouts-stage > .layout-grid {
+  width: 100%;
+}
+
 .layouts-stage .hero-strip-preview {
+  width: 100%;
   margin-top: 0;
 }
 
@@ -299,6 +305,19 @@
   background: rgba(255, 255, 255, 0.76);
 }
 
+.layout-preview.shape-grid .mini-frames {
+  display: grid;
+  grid-template-columns: repeat(2, 18px);
+  gap: 3px;
+}
+
+.layout-preview.shape-grid .mini-frame {
+  width: 18px;
+  height: 12px;
+  border: 1px solid rgba(48, 36, 59, 0.38);
+  border-radius: 2px;
+}
+
 .layout-preview.shape-portrait .mini-frame {
   width: 11px;
   height: 16px;
@@ -318,9 +337,9 @@
 .layout-preview--mini2 { background: linear-gradient(135deg, #f2e6ff, #d9c5ff); }
 .layout-preview--tall6 { background: linear-gradient(135deg, #e0f7ed, #b8ead8); }
 .layout-preview--film5 { background: linear-gradient(135deg, #fff3ca, #ffe39a); }
-.layout-preview--retro7 { background: linear-gradient(135deg, #e5f6ff, #c4e8fb); }
 .layout-preview--polaroid4 { background: linear-gradient(135deg, #fff0e2, #ffd4bb); }
-.layout-preview--cinema8 { background: linear-gradient(135deg, #ecebff, #cfcafa); }
+.layout-preview--grid4 { background: linear-gradient(135deg, #fff0f4, #f4cddd); }
+.layout-preview--grid6 { background: linear-gradient(135deg, #e9f6ff, #c5e4f5); }
 
 .layout-name {
   margin-bottom: 2px;
@@ -471,6 +490,14 @@
   .layout-overview-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .layouts-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+  .layouts-stage .hero-strip-preview {
+    justify-self: center;
+    max-width: 340px;
   }
   .back-link {
     margin-left: 0;

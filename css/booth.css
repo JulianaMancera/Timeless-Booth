@@ -26,8 +26,10 @@
   display: grid;
   width: 100%;
   max-width: 1080px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  align-items: start;
   justify-items: center;
-  gap: 35px;
+  gap: 28px;
 }
 
 .camera-unit {
@@ -232,6 +234,7 @@
 
 .stage > .strip-column {
   width: min(100%, 420px);
+  justify-self: center;
   padding: 24px;
   border: 2px dashed rgba(48, 36, 59, 0.22);
   border-radius: 28px;
@@ -346,7 +349,10 @@
   .page { padding: 20px 14px 46px; }
   .camera-unit { width: 100%; padding: 15px; }
   .bellows { max-width: 100%; }
-  .stage { gap: 38px; }
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 38px;
+  }
   .options-row { max-width: 360px; }
   .back-link { margin-left: 0; }
 }
