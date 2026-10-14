@@ -216,6 +216,38 @@ class VintageProcessor {
     ctx.fillStyle = design.background;
     ctx.fillRect(0, 0, stripW, stripH);
 
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, stripW, stripH);
+    ctx.clip();
+    ctx.globalAlpha = 0.34;
+    ctx.fillStyle = design.accent;
+    if (design.pattern === 'stripe') {
+      for (let x = 0; x < stripW; x += 22) ctx.fillRect(x, 0, 6, stripH);
+    } else if (design.pattern === 'dot') {
+      for (let y = 18; y < stripH; y += 24) {
+        for (let x = 12; x < stripW; x += 24) {
+          ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    } else if (design.pattern === 'star') {
+      for (let y = 20; y < stripH; y += 35) {
+        this._drawStripStar(ctx, 13, y, 5);
+        this._drawStripStar(ctx, stripW - 13, y + 12, 5);
+      }
+    } else if (design.pattern === 'check') {
+      for (let y = 0; y < stripH; y += 16) {
+        for (let x = 0; x < stripW; x += 16) {
+          if ((x / 16 + y / 16) % 2 === 0) ctx.fillRect(x, y, 8, 8);
+        }
+      }
+    } else {
+      for (let y = 16; y < stripH; y += 24) {
+        ctx.fillRect(0, y, stripW, 2);
+      }
+    }
+    ctx.restore();
+
     ctx.fillStyle = design.accent;
     ctx.fillRect(0, 0, stripW, 12);
     for (let y = 22; y < stripH - 15; y += 28) {
@@ -226,7 +258,8 @@ class VintageProcessor {
     images.forEach((img, i) => {
       const y = pad + i * (frameH + gap);
       ctx.fillStyle = design.frame;
-      ctx.fillRect(pad - 5, y - 5, frameW + 10, frameH + 10);
+      const mat = design.pattern === 'ticket' ? 8 : 5;
+      ctx.fillRect(pad - mat, y - mat, frameW + mat * 2, frameH + mat * 2);
       ctx.save();
       ctx.beginPath();
       ctx.rect(pad, y, frameW, frameH);
@@ -242,8 +275,22 @@ class VintageProcessor {
       ctx.restore();
 
       ctx.strokeStyle = design.accent;
-      ctx.lineWidth = options.highlightIndex === i ? 8 : 2;
+      ctx.lineWidth = options.highlightIndex === i ? 8 : (design.pattern === 'check' ? 6 : 3);
+      ctx.setLineDash(design.pattern === 'star' ? [9, 6] : []);
       ctx.strokeRect(pad, y, frameW, frameH);
+      ctx.setLineDash([]);
+      if (design.pattern === 'dot') {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = design.frame;
+        ctx.strokeRect(pad + 7, y + 7, frameW - 14, frameH - 14);
+      } else if (design.pattern === 'ticket') {
+        ctx.fillStyle = design.accent;
+        for (let corner = 0; corner < 4; corner++) {
+          const cx = corner % 2 === 0 ? pad + 9 : pad + frameW - 9;
+          const cy = corner < 2 ? y + 9 : y + frameH - 9;
+          ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+        }
+      }
       if (options.bestShotIndex === i) {
         ctx.font = '34px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
         ctx.textAlign = 'right';
@@ -254,6 +301,20 @@ class VintageProcessor {
 
     ctx.fillStyle = design.accent;
     ctx.fillRect(0, footerY, stripW, 4);
+    ctx.fillStyle = design.accent;
+    if (design.pattern === 'star') {
+      this._drawStripStar(ctx, 26, footerY + footerH / 2, 9);
+      this._drawStripStar(ctx, stripW - 26, footerY + footerH / 2, 9);
+    } else if (design.pattern === 'stripe') {
+      for (let x = 8; x < stripW - 8; x += 16) ctx.fillRect(x, footerY + 8, 5, 5);
+    } else if (design.pattern === 'check') {
+      for (let x = 8; x < stripW - 8; x += 12) ctx.fillRect(x, footerY + 8, 6, 6);
+    } else if (design.pattern === 'ticket') {
+      ctx.beginPath();
+      ctx.arc(18, footerY + 4, 8, 0, Math.PI * 2);
+      ctx.arc(stripW - 18, footerY + 4, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.fillStyle = '#30243b';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -261,6 +322,21 @@ class VintageProcessor {
     ctx.fillText(options.footerText || 'STICKER STUDIO', stripW / 2, footerY + footerH / 2, stripW - 24);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
+  }
+
+  /** @private */
+  _drawStripStar(ctx, x, y, radius) {
+    ctx.beginPath();
+    for (let point = 0; point < 10; point++) {
+      const angle = (Math.PI / 5) * point - Math.PI / 2;
+      const distance = point % 2 === 0 ? radius : radius * 0.45;
+      const px = x + Math.cos(angle) * distance;
+      const py = y + Math.sin(angle) * distance;
+      if (point === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
   }
 
   /** @private */

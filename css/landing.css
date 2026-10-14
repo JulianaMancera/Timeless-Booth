@@ -253,15 +253,15 @@
   display: flex;
   width: 100%;
   max-width: 1100px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 52px;
-  flex-wrap: wrap;
+  gap: 35px;
+  flex-direction: column;
   margin: 24px auto 0;
 }
 
 .layouts-stage .hero-strip-preview {
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .layout-preview {

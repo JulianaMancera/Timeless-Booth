@@ -23,17 +23,16 @@
 }
 
 .stage {
-  display: flex;
+  display: grid;
   width: 100%;
   max-width: 1080px;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 48px;
-  flex-wrap: wrap;
+  justify-items: center;
+  gap: 35px;
 }
 
 .camera-unit {
   display: flex;
+  width: min(100%, 470px);
   flex-direction: column;
   align-items: center;
   gap: 18px;
@@ -229,6 +228,14 @@
 .sticker-note {
   min-height: 1.1em;
   margin: 9px 0 0;
+}
+
+.stage > .strip-column {
+  width: min(100%, 420px);
+  padding: 24px;
+  border: 2px dashed rgba(48, 36, 59, 0.22);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .control-label {

@@ -21,9 +21,9 @@ const LAYOUT_PRESETS = Object.freeze([
 ]);
 
 const STRIP_DESIGNS = Object.freeze([
-  { id: 'rose', name: 'Sweetheart', background: '#fff0f4', accent: '#f18ba9', frame: '#ffffff' },
-  { id: 'sky', name: 'Cloud nine', background: '#eef8ff', accent: '#83c7eb', frame: '#ffffff' },
-  { id: 'lavender', name: 'Dreamy lilac', background: '#f3efff', accent: '#aa91e8', frame: '#ffffff' },
-  { id: 'mint', name: 'Minty fresh', background: '#eaf8f1', accent: '#77c9aa', frame: '#ffffff' },
-  { id: 'classic', name: 'Cream soda', background: '#fff8e9', accent: '#e4b764', frame: '#ffffff' },
+  { id: 'rose', name: 'Sweetheart', background: '#fff0f4', accent: '#f18ba9', frame: '#ffffff', pattern: 'stripe' },
+  { id: 'sky', name: 'Cloud nine', background: '#eef8ff', accent: '#83c7eb', frame: '#ffffff', pattern: 'dot' },
+  { id: 'lavender', name: 'Dreamy lilac', background: '#f3efff', accent: '#aa91e8', frame: '#ffffff', pattern: 'star' },
+  { id: 'mint', name: 'Minty fresh', background: '#eaf8f1', accent: '#77c9aa', frame: '#ffffff', pattern: 'check' },
+  { id: 'classic', name: 'Cream soda', background: '#fff8e9', accent: '#e4b764', frame: '#ffffff', pattern: 'ticket' },
 ]);
