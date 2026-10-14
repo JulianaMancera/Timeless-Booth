@@ -428,8 +428,10 @@ class PhotoBooth {
       this.dom.statusLine.textContent = 'Recording your animated photo strip...';
       const blob = await this.processor.buildVideo(this.shots, this._getStripOptions());
       const objectUrl = URL.createObjectURL(blob);
-      this._triggerDownload(objectUrl, 'sticker-studio-strip.webm', true);
-      this.dom.statusLine.textContent = 'Your photo strip video is ready.';
+      const isMp4 = blob.type.startsWith('video/mp4');
+      const extension = isMp4 ? 'mp4' : 'webm';
+      this._triggerDownload(objectUrl, `sticker-studio-strip.${extension}`, true);
+      this.dom.statusLine.textContent = `Your photo strip ${extension.toUpperCase()} video is ready.`;
     } catch (err) {
       this.dom.statusLine.textContent = `Could not create video: ${err.message}`;
     } finally {

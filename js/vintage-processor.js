@@ -154,7 +154,7 @@ class VintageProcessor {
   }
 
   /**
-   * Records the complete strip animation as a browser-supported WebM video.
+   * Records the complete strip animation using the best browser-supported video format.
    * @param {string[]} shotDataUrls
    * @param {{
    *   bestShotIndex?: number,
@@ -173,9 +173,15 @@ class VintageProcessor {
     if (typeof MediaRecorder.isTypeSupported !== 'function') {
       throw new Error('This browser cannot check video encoding support.');
     }
-    const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+    const mimeType = [
+      'video/mp4;codecs=avc1.42E01E',
+      'video/mp4',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+    ]
       .find((type) => MediaRecorder.isTypeSupported(type));
-    if (!mimeType) throw new Error('This browser cannot encode WebM video.');
+    if (!mimeType) throw new Error('This browser cannot encode MP4 or WebM video.');
 
     const geometry = this._getStripGeometry(loadedFrames.length, options);
     const scale = Math.min(1, 900 / geometry.stripW, 1800 / geometry.stripH);
