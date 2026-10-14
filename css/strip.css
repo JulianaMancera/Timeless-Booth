@@ -1,67 +1,51 @@
 /**
- * strip.css
- * The physical film-strip component: sprocket holes, frame slots,
- * the "develop" animation, and the paper-stock styling. Used on
- * both the landing page (as a static preview) and the live booth
- * (as the real capture target) — same .film-strip markup, two contexts.
+ * Sticker-print strip component shared by the preview and capture pages.
  */
 .strip-column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-}
-
-.strip-label {
-  font-family: var(--font-label);
-  font-size: 0.8rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--brass-light);
+  gap: 17px;
 }
 
 .film-strip {
-  width: 170px;
-  background: var(--cream);
-  border-radius: 4px;
-  padding: 14px 10px;
   position: relative;
-  box-shadow:
-    0 20px 50px -15px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(0, 0, 0, 0.15);
-  transform: rotate(-1.2deg);
+  width: 176px;
+  padding: 15px 13px;
+  border: 2px solid var(--ink);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 5px 6px 0 var(--ink), 0 20px 35px rgba(48, 36, 59, 0.12);
+  transform: rotate(-2deg);
 }
 
 .film-strip::before,
 .film-strip::after {
-  content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 20px;
-  background-image: radial-gradient(circle, #0d0906 4px, transparent 4.3px);
-  background-size: 100% 30px;
-  background-repeat: repeat-y;
-  background-position: center 8px;
+  top: 14px;
+  bottom: 14px;
+  width: 7px;
+  border-radius: 8px;
+  background: radial-gradient(circle, #f2d4df 3px, transparent 3.5px);
+  background-size: 100% 18px;
+  content: "";
 }
-.film-strip::before {
-  left: 2px;
-}
-.film-strip::after {
-  right: 2px;
-}
+.film-strip::before { left: 4px; }
+.film-strip::after { right: 4px; }
 
 .frame-slot {
+  position: relative;
+  display: flex;
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: #c9bfa0;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  margin: 0 0 10px;
-  display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 0 9px;
   overflow: hidden;
-  position: relative;
+  border: 2px solid #fff;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ffe1e8, #f4dcff);
+  box-shadow: 0 0 0 1px rgba(48, 36, 59, 0.12);
 }
 
 .frame-slot img {
@@ -74,160 +58,103 @@
 }
 
 @keyframes develop {
-  0% {
-    opacity: 0.15;
-    filter: contrast(0.5) brightness(2.6) saturate(0.2);
-  }
-  40% {
-    opacity: 0.6;
-    filter: contrast(0.8) brightness(1.4) saturate(0.6);
-  }
-  100% {
-    opacity: 1;
-    filter: contrast(1) brightness(1) saturate(1);
-  }
+  0% { opacity: 0.15; filter: contrast(0.5) brightness(2.6) saturate(0.2); }
+  40% { opacity: 0.6; filter: contrast(0.8) brightness(1.4) saturate(0.6); }
+  100% { opacity: 1; filter: contrast(1) brightness(1) saturate(1); }
 }
 
 .frame-slot .placeholder-x {
-  color: rgba(0, 0, 0, 0.2);
-  font-size: 0.7rem;
-  font-family: var(--font-label);
+  color: rgba(48, 36, 59, 0.42);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .frame-star {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 7px;
+  right: 7px;
+  display: grid;
   width: 28px;
   height: 28px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  font-size: 16px;
-  color: #9c7a1d;
-  cursor: pointer;
-  display: grid;
   place-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(48, 36, 59, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #a68bce;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 3px 8px rgba(48, 36, 59, 0.18);
 }
-
 .frame-star.selected {
-  background: #f8db6b;
-  color: #2c1900;
+  background: var(--amber);
+  color: var(--ink);
 }
-
-.frame-star:hover {
-  transform: scale(1.05);
+.frame-star:hover { transform: scale(1.08); }
+.frame-star:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
-
 .frame-slot.starred {
-  box-shadow: 0 0 0 3px rgba(255, 211, 96, 0.55);
+  box-shadow: 0 0 0 3px var(--amber);
 }
 
 .frame-stamp {
   position: absolute;
-  bottom: 3px;
   right: 5px;
-  font-size: 0.55rem;
-  color: rgba(0, 0, 0, 0.55);
-  background: rgba(244, 232, 208, 0.7);
-  padding: 1px 3px;
+  bottom: 4px;
+  padding: 2px 5px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.82);
+  color: rgba(48, 36, 59, 0.75);
+  font-size: 0.52rem;
+  font-weight: 900;
 }
 
 .strip-footer {
+  margin-top: 4px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-align: center;
-  font-size: 0.6rem;
-  color: rgba(26, 20, 16, 0.55);
-  letter-spacing: 1px;
-  margin-top: 2px;
 }
 
-.film-strip.layout-mini {
-  width: 140px;
-}
-
-.film-strip.layout-tall {
-  width: 190px;
-}
-
-.film-strip.layout-portrait {
-  background: linear-gradient(180deg, #f4f1e7 0%, #dcd1b9 100%);
-}
-.film-strip.layout-classic {
-  background: linear-gradient(180deg, #f4e8d0 0%, #e4d0ba 100%);
-}
-.film-strip.layout-film {
-  background: linear-gradient(180deg, #f9f1e2 0%, #e6d7b4 100%);
-  width: 180px;
-}
-.film-strip.layout-retro {
-  background: linear-gradient(180deg, #f7f0fe 0%, #e3dcf7 100%);
-  width: 200px;
-}
-.film-strip.layout-polaroid {
-  width: 170px;
-  background: linear-gradient(180deg, #fff7f1 0%, #f1ded0 100%);
-  border-radius: 22px;
-}
-.film-strip.layout-cinema {
-  width: 210px;
-  background: linear-gradient(180deg, #eef3ff 0%, #d7defa 100%);
-  border-radius: 10px;
-}
-
-.film-strip.layout-tall {
-  width: 190px;
-}
-
-.film-strip.layout-mini {
-  width: 140px;
-}
+.film-strip.layout-mini { width: 145px; }
+.film-strip.layout-tall { width: 190px; }
+.film-strip.layout-portrait { background: linear-gradient(180deg, #f4efff, #fff); }
+.film-strip.layout-classic { background: linear-gradient(180deg, #fff, #fff3f6); }
+.film-strip.layout-film { width: 180px; background: linear-gradient(180deg, #fffdf2, #fff0c9); }
+.film-strip.layout-retro { width: 200px; background: linear-gradient(180deg, #f1edff, #fff); }
+.film-strip.layout-polaroid { width: 176px; border-radius: 24px; background: linear-gradient(180deg, #fff, #fff1e8); }
+.film-strip.layout-cinema { width: 210px; border-radius: 18px; background: linear-gradient(180deg, #eef8ff, #f1edff); }
 
 .download-btn {
-  font-size: 0.95rem;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-  color: #211a0f;
-  background: linear-gradient(135deg, #ffd284 0%, #f2a644 100%);
-  border: none;
-  padding: 14px 32px;
+  padding: 14px 26px;
+  border: 2px solid var(--ink);
   border-radius: 999px;
+  background: var(--amber);
+  box-shadow: 0 4px 0 var(--ink);
+  color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 14px 24px rgba(184, 108, 18, 0.3);
-  opacity: 1;
-  pointer-events: auto;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
+  font-size: 0.92rem;
+  font-weight: 1000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .download-btn:disabled {
-  background: rgba(255, 210, 138, 0.5);
-  color: rgba(33, 26, 15, 0.6);
-  cursor: not-allowed;
   box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.45;
 }
-.download-btn.ready {
-  transform: translateY(-1px);
-}
+.download-btn.ready { transform: translateY(-1px); }
 .download-btn:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 30px rgba(184, 108, 18, 0.45);
+  box-shadow: 0 1px 0 var(--ink);
+  transform: translateY(3px);
 }
 .download-btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
-}
-.download-btn.ready {
-  opacity: 1;
-  pointer-events: auto;
-}
-.download-btn:hover.ready {
-  transform: translateY(-2px);
-}
-.download-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  box-shadow: var(--focus-ring), 0 4px 0 var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

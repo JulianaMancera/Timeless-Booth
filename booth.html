@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timeless Booth — Capture</title>
+<title>Sticker Studio — Take Your Photos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900;1000&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/variables.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/strip.css">
@@ -14,9 +15,10 @@
 <body>
 
   <div class="page">
-    <a class="back-link" href="layouts.html">&larr; Back</a>
-    <h1 class="title">Timeless Booth</h1>
-    <div class="subtitle">— choose a style, then capture your best frames —</div>
+    <a class="back-link" href="layouts.html">&larr; Change photo vibe</a>
+    <div class="eyebrow">✿ your moment, your masterpiece ✿</div>
+    <h1 class="title">Smile for<br>the sticker!</h1>
+    <div class="subtitle">get comfy, pick a filter, and let the good times roll</div>
 
     <div class="stage">
       <div class="camera-unit">
@@ -24,7 +26,7 @@
           <div class="viewfinder" id="viewfinder">
             <video id="video" autoplay playsinline muted aria-label="Live camera preview"></video>
             <div class="vignette"></div>
-            <div class="idle-message" id="idleMessage">Position yourself in frame,<br>then press the shutter.</div>
+            <div class="idle-message" id="idleMessage">Your camera-ready moment is waiting!<br>Start the session when you're ready.</div>
             <div class="error-message" id="errorMessage" hidden></div>
             <div class="countdown-overlay" id="countdown" aria-live="polite">3</div>
             <div class="flash-overlay" id="flash"></div>
@@ -35,7 +37,7 @@
         </div>
 
         <div class="controls">
-          <button class="shutter-btn" id="startBtn" type="button">Start Session</button>
+          <button class="shutter-btn" id="startBtn" type="button">Start snapping ✿</button>
           <button class="ghost-btn" id="retakeBtn" type="button" disabled>Retake</button>
         </div>
         <div class="options-row">
@@ -69,15 +71,15 @@
       </div>
 
       <div class="strip-column">
-        <div class="strip-label" id="stripStyleLabel">Developing Strip</div>
+        <div class="strip-label" id="stripStyleLabel">your photo magic</div>
         <div class="film-strip layout-classic" id="filmStrip">
           <div class="frame-slot" data-slot="0"><span class="placeholder-x">01</span></div>
           <div class="frame-slot" data-slot="1"><span class="placeholder-x">02</span></div>
           <div class="frame-slot" data-slot="2"><span class="placeholder-x">03</span></div>
           <div class="frame-slot" data-slot="3"><span class="placeholder-x">04</span></div>
-          <div class="strip-footer" id="stripDate">TIMELESS BOOTH</div>
+          <div class="strip-footer" id="stripDate">STICKER STUDIO</div>
         </div>
-        <button class="download-btn" id="downloadBtn" type="button">Download Strip</button>
+        <button class="download-btn" id="downloadBtn" type="button">Save my strip ↓</button>
       </div>
     </div>
 
@@ -85,7 +87,7 @@
     <canvas class="hidden-canvas" id="stripCanvas"></canvas>
     <canvas class="hidden-canvas" id="noiseCanvas" width="200" height="200"></canvas>
 
-    <div class="page-footer">Camera access requires a real browser tab (not a sandboxed preview). Open this file directly.</div>
+    <div class="page-footer">Your camera is only used for your photos. Nothing is saved unless you choose to download it. ✿</div>
   </div>
 
   <!-- Load order matters: each class attaches to the shared top-level

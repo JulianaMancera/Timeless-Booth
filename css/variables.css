@@ -1,26 +1,26 @@
 /**
- * variables.css
- * Shared design tokens. Every other stylesheet in this project
- * pulls its colors/fonts from here — change a value once, it
- * propagates everywhere.
+ * Shared sticker-studio design tokens.
  */
 :root {
-  /* Palette */
-  --darkroom: #1a1410;
-  --shadow: #241b15;
-  --cream: #f4e8d0;
-  --cream-dim: #e8d9b8;
-  --brass: #8b6f47;
-  --brass-light: #a9895c;
-  --safelight: #c9432a;
-  --safelight-dim: #8f2f1e;
-  --amber: #e8c468;
+  --darkroom: #fff8f2;
+  --shadow: #fff;
+  --cream: #fffdf9;
+  --cream-dim: #6f6278;
+  --brass: #e7cfe0;
+  --brass-light: #695b73;
+  --safelight: #ec6b8d;
+  --safelight-dim: #d95178;
+  --amber: #ffd56a;
+  --ink: #30243b;
+  --lilac: #b8a4ef;
+  --mint: #a5e3d0;
+  --sky: #a8d9f4;
 
-  /* Type */
-  --font-display: 'Abril Fatface', serif;
-  --font-label: 'Special Elite', monospace;
-  --font-mono: 'Courier Prime', monospace;
+  --font-display: 'Fredoka', 'Trebuchet MS', sans-serif;
+  --font-label: 'Nunito', 'Trebuchet MS', sans-serif;
+  --font-mono: 'Nunito', 'Trebuchet MS', sans-serif;
 
-  /* Focus ring, reused on every interactive element */
-  --focus-ring: 0 0 0 3px rgba(232, 196, 104, 0.55);
+  --focus-ring: 0 0 0 4px rgba(184, 164, 239, 0.5);
+  --soft-shadow: 0 18px 50px rgba(71, 47, 81, 0.12);
+  --outline: 2px solid var(--ink);
 }

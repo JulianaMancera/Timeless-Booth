@@ -148,10 +148,10 @@ class VintageProcessor {
     canvas.height = stripH;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#f4e8d0';
+    ctx.fillStyle = '#fff8f2';
     ctx.fillRect(0, 0, stripW, stripH);
 
-    ctx.fillStyle = '#0d0906';
+    ctx.fillStyle = '#f2d4df';
     const holeRadius = 9;
     const holeGap = 46;
     for (let y = 20; y < stripH - 20; y += holeGap) {
@@ -186,10 +186,10 @@ class VintageProcessor {
     });
 
     const footerY = pad + (frameH + gap) * shotDataUrls.length;
-    ctx.fillStyle = 'rgba(26,20,16,0.7)';
+    ctx.fillStyle = 'rgba(48,36,59,0.82)';
     ctx.textAlign = 'center';
     ctx.font = '22px Georgia';
-    ctx.fillText('TIMELESS BOOTH', stripW / 2, footerY + footerH / 2 - 8);
+    ctx.fillText('STICKER STUDIO', stripW / 2, footerY + footerH / 2 - 8);
     ctx.font = '14px Courier New';
     ctx.fillText(new Date().toLocaleDateString(), stripW / 2, footerY + footerH / 2 + 16);
     ctx.textAlign = 'left';

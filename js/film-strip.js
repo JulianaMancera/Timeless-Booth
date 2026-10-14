@@ -75,7 +75,7 @@ class FilmStrip {
 
     this.rootEl.appendChild(footer);
     this.dateEl = footer;
-    this.dateEl.textContent = 'TIMELESS BOOTH';
+    this.dateEl.textContent = 'STICKER STUDIO';
   }
 
   markBestShot(index) {
@@ -96,6 +96,6 @@ class FilmStrip {
   }
 
   markComplete() {
-    this.dateEl.textContent = `TIMELESS BOOTH • ${new Date().toLocaleDateString()}`;
+    this.dateEl.textContent = `STICKER STUDIO • ${new Date().toLocaleDateString()}`;
   }
 }

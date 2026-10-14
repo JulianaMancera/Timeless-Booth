@@ -298,7 +298,7 @@ class PhotoBooth {
   async _onDownloadPressed() {
     if (this.shots.length < this.layout.totalShots) return;
     const dataUrl = await this.processor.buildStrip(this.shots, this.dom.stripCanvas, this.bestShotIndex);
-    this._triggerDownload(dataUrl, 'timeless-booth-strip.png');
+    this._triggerDownload(dataUrl, 'sticker-studio-strip.png');
   }
 
   /** @private */
@@ -323,6 +323,8 @@ class PhotoBooth {
 
     if (resetSession) {
       this._reset();
+    } else {
+      this.filmStrip.reset(nextLayout.totalShots);
     }
     this.dom.statusLine.textContent = `${nextLayout.name} selected. Capture ${nextLayout.totalShots} frames.`;
   }
@@ -340,7 +342,7 @@ class PhotoBooth {
     const dataUrl = this.shots.length > 0
       ? this.shots[this.shots.length - 1]
       : this.processor.captureFrame(this.dom.video, this.dom.captureCanvas, this.currentFilter);
-    this._triggerDownload(dataUrl, `timeless-booth-photo-${this.shots.length || 1}.jpg`);
+    this._triggerDownload(dataUrl, `sticker-studio-photo-${this.shots.length || 1}.jpg`);
   }
 
   /** @private */
@@ -354,7 +356,7 @@ class PhotoBooth {
       this.dom.statusLine.textContent = 'Building your GIF...';
       const blob = await this.processor.buildGif(this.shots, this.currentFilter);
       const objectUrl = URL.createObjectURL(blob);
-      this._triggerDownload(objectUrl, 'timeless-booth.gif', true);
+      this._triggerDownload(objectUrl, 'sticker-studio.gif', true);
       this.dom.statusLine.textContent = 'GIF export ready.';
     } catch (err) {
       this.dom.statusLine.textContent = `Could not create GIF: ${err.message}`;

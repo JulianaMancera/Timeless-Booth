@@ -72,7 +72,7 @@ function renderPreviewStrip(layoutId) {
   }
   const footer = document.createElement('div');
   footer.className = 'strip-footer';
-  footer.textContent = 'TIMELESS BOOTH';
+  footer.textContent = 'STICKER STUDIO';
   strip.appendChild(footer);
 
   if (nameEl) nameEl.textContent = `${layout.name} — ${layout.totalShots} shots`;
