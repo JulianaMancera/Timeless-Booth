@@ -115,7 +115,6 @@
 .film-strip.layout-classic { background: linear-gradient(180deg, #fff, #fff3f6); }
 .film-strip.layout-film { width: 180px; background: linear-gradient(180deg, #fffdf2, #fff0c9); }
 .film-strip.layout-retro { width: 200px; background: linear-gradient(180deg, #f1edff, #fff); }
-.film-strip.layout-polaroid { width: 176px; border-radius: 24px; background: linear-gradient(180deg, #fff, #fff1e8); }
 .film-strip.layout-cinema { width: 210px; border-radius: 18px; background: linear-gradient(180deg, #eef8ff, #f1edff); }
 .film-strip.layout-grid4,
 .film-strip.layout-grid6 {
