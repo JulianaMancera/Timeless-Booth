@@ -18,6 +18,8 @@ class FilmStrip {
   constructor(rootEl, dateEl) {
     this.rootEl = rootEl;
     this.dateEl = dateEl;
+    this.caption = '';
+    this.completedDate = '';
   }
 
   /**
@@ -45,6 +47,33 @@ class FilmStrip {
       }
     });
     slot.appendChild(star);
+  }
+
+  /** @param {string} caption */
+  setCaption(caption) {
+    this.caption = caption;
+    this._renderFooter();
+  }
+
+  /** @private */
+  _renderFooter() {
+    this.dateEl.replaceChildren();
+    const title = document.createElement('span');
+    title.className = 'strip-title';
+    title.textContent = 'STICKER STUDIO';
+    this.dateEl.appendChild(title);
+    if (this.completedDate) {
+      const date = document.createElement('span');
+      date.className = 'strip-date';
+      date.textContent = this.completedDate;
+      this.dateEl.appendChild(date);
+    }
+    if (this.caption) {
+      const caption = document.createElement('span');
+      caption.className = 'strip-caption';
+      caption.textContent = this.caption;
+      this.dateEl.appendChild(caption);
+    }
   }
 
   /**
@@ -101,7 +130,8 @@ class FilmStrip {
 
     this.rootEl.appendChild(footer);
     this.dateEl = footer;
-    this.dateEl.textContent = 'STICKER STUDIO';
+    this.completedDate = '';
+    this._renderFooter();
   }
 
   markBestShot(index) {
@@ -122,6 +152,7 @@ class FilmStrip {
   }
 
   markComplete() {
-    this.dateEl.textContent = `STICKER STUDIO • ${new Date().toLocaleDateString()}`;
+    this.completedDate = new Date().toLocaleDateString();
+    this._renderFooter();
   }
 }

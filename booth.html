@@ -28,7 +28,7 @@
             <div class="vignette"></div>
             <div class="idle-message" id="idleMessage">Your camera-ready moment is waiting!<br>Start the session when you're ready.</div>
             <div class="error-message" id="errorMessage" hidden></div>
-            <div class="countdown-overlay" id="countdown" aria-live="polite">3</div>
+            <div class="countdown-overlay" id="countdown" aria-live="polite">5</div>
             <div class="flash-overlay" id="flash"></div>
             <div class="frame-counter" id="frameCounter" hidden>
               <span class="rec-dot"></span>SHOT <span id="shotNum">1</span>/<span id="frameTotal">4</span>
@@ -62,16 +62,18 @@
               <option value="lavender">Dreamy lilac</option>
               <option value="mint">Minty fresh</option>
               <option value="classic">Cream soda</option>
+              <option value="cats">Kitty Club</option>
             </select>
           </label>
           <div class="control-label">
             <span>Timer</span>
             <div class="timer-toggle" id="timerToggle" role="group" aria-label="Choose countdown timer">
-              <button type="button" class="timer-option selected" data-seconds="3" aria-pressed="true">3 sec</button>
-              <button type="button" class="timer-option" data-seconds="5" aria-pressed="false">5 sec</button>
+              <button type="button" class="timer-option selected" data-seconds="5" aria-pressed="true">5 sec</button>
+              <button type="button" class="timer-option" data-seconds="10" aria-pressed="false">10 sec</button>
             </div>
           </div>
           <button class="ghost-btn" id="downloadPhotoBtn" type="button" disabled>Download Image</button>
+          <button class="ghost-btn" id="gifBtn" type="button" disabled>Download Photo GIF</button>
           <button class="ghost-btn" id="videoBtn" type="button" disabled>Download Strip Video</button>
         </div>
         <select class="camera-select" id="cameraSelect" hidden aria-label="Choose camera"></select>
@@ -93,6 +95,10 @@
         <div class="sticker-station">
           <div class="sticker-station-title">Add a little extra ✿</div>
           <p class="sticker-help">Stickers are optional. Drag one onto any photo, then move it between photos or click it to remove.</p>
+          <label class="caption-control" for="captionInput">
+            <span>Photo caption (optional)</span>
+            <input id="captionInput" type="text" maxlength="32" placeholder="a little memory..." autocomplete="off">
+          </label>
           <div class="sticker-tray" id="stickerTray" role="group" aria-label="Photo stickers">
             <button class="sticker-option" type="button" draggable="true" data-sticker="🌸" aria-label="Add flower sticker">🌸</button>
             <button class="sticker-option" type="button" draggable="true" data-sticker="💖" aria-label="Add heart sticker">💖</button>
@@ -115,6 +121,7 @@
 
   <!-- Load order matters: each class attaches to the shared top-level
        scope, so dependencies must load before whatever consumes them. -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
   <script src="js/layout-presets.js"></script>
   <script src="js/camera-manager.js"></script>
   <script src="js/vintage-processor.js"></script>

@@ -47,7 +47,7 @@ class CameraManager {
     this.videoEl.playsInline = true;
     this.videoEl.setAttribute('playsinline', '');
     this.videoEl.srcObject = this.stream;
-    await this.videoEl.play().catch(() => {}); // autoplay guard
+    await this.videoEl.play();
   }
 
   /** Releases all active tracks. */

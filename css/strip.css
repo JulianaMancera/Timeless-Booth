@@ -100,6 +100,10 @@
 }
 
 .strip-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   margin-top: 4px;
   color: var(--ink);
   font-family: var(--font-display);
@@ -107,6 +111,27 @@
   font-weight: 600;
   letter-spacing: 0.09em;
   text-align: center;
+}
+.strip-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+.strip-date {
+  font-family: var(--font-label);
+  font-size: 0.46rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.strip-caption {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-label);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .film-strip.layout-mini { width: 145px; }
@@ -147,6 +172,7 @@
 .film-strip.theme-lavender { --strip-background: #f3efff; --strip-accent: #aa91e8; }
 .film-strip.theme-mint { --strip-background: #eaf8f1; --strip-accent: #77c9aa; }
 .film-strip.theme-classic { --strip-background: #fff8e9; --strip-accent: #e4b764; }
+.film-strip.theme-cats { --strip-background: #fff4eb; --strip-accent: #b87859; }
 .film-strip[class*="theme-"] {
   padding: 18px 16px;
   background-color: var(--strip-background);
@@ -254,6 +280,44 @@
 .film-strip.theme-classic .strip-footer {
   padding: 5px 2px 1px;
   border-top: 2px solid #a87b36;
+}
+.film-strip.theme-cats {
+  border: 3px solid #8f543d;
+  background-image:
+    radial-gradient(circle at 10px 10px, rgba(184, 120, 89, 0.16) 2px, transparent 2.8px),
+    radial-gradient(circle at 20px 20px, rgba(184, 120, 89, 0.12) 2px, transparent 2.8px);
+  background-size: 30px 30px;
+}
+.film-strip.theme-cats::before,
+.film-strip.theme-cats::after {
+  background-image: radial-gradient(circle, #8f543d 3px, transparent 3.5px);
+}
+.film-strip.theme-cats .frame-slot {
+  overflow: visible;
+  border: 3px solid #8f543d;
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px #e9b69a;
+}
+.film-strip.theme-cats .frame-slot::before,
+.film-strip.theme-cats .frame-slot::after {
+  position: absolute;
+  top: -5px;
+  z-index: 1;
+  width: 13px;
+  height: 13px;
+  background: #8f543d;
+  content: "";
+  clip-path: polygon(0 100%, 18% 0, 100% 100%);
+  pointer-events: none;
+}
+.film-strip.theme-cats .frame-slot::before { left: 9px; }
+.film-strip.theme-cats .frame-slot::after {
+  right: 9px;
+  transform: scaleX(-1);
+}
+.film-strip.theme-cats .strip-footer {
+  padding: 5px 2px 1px;
+  border-top: 2px dotted #b87859;
 }
 
 .placed-sticker {

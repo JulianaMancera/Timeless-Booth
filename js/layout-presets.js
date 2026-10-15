@@ -25,4 +25,5 @@ const STRIP_DESIGNS = Object.freeze([
   { id: 'lavender', name: 'Dreamy lilac', background: '#f3efff', accent: '#aa91e8', frame: '#ffffff', pattern: 'star' },
   { id: 'mint', name: 'Minty fresh', background: '#eaf8f1', accent: '#77c9aa', frame: '#ffffff', pattern: 'check' },
   { id: 'classic', name: 'Cream soda', background: '#fff8e9', accent: '#e4b764', frame: '#ffffff', pattern: 'ticket' },
+  { id: 'cats', name: 'Kitty Club', background: '#fff4eb', accent: '#b87859', frame: '#fffdf9', pattern: 'cat' },
 ]);

@@ -24,7 +24,7 @@ const BoothState = Object.freeze({
 });
 
 const SESSION_CONFIG = Object.freeze({
-  DEFAULT_COUNTDOWN_SECONDS: 3,
+  DEFAULT_COUNTDOWN_SECONDS: 5,
   FLASH_DURATION_MS: 70,
   POST_SHOT_DELAY_MS: 600,
   MAX_PHOTOS: 6,
@@ -51,6 +51,7 @@ class PhotoBooth {
     this.filmStrip.onBestShotSelected = (index) => this._markBestShot(index);
     this.filmStrip.onStickerRemoved = (index, stickerId) => this._removeSticker(index, stickerId);
     this.currentFilter = 'none';
+    this.caption = '';
     this.countdownSeconds = SESSION_CONFIG.DEFAULT_COUNTDOWN_SECONDS;
     this.bestShotIndex = -1;
     this.layout = null;
@@ -105,8 +106,10 @@ class PhotoBooth {
       designSelect: byId('designSelect'),
       stickerTray: byId('stickerTray'),
       stickerNote: byId('stickerNote'),
+      captionInput: byId('captionInput'),
       layoutGrid: byId('layoutGrid'),
       downloadPhotoBtn: byId('downloadPhotoBtn'),
+      gifBtn: byId('gifBtn'),
       videoBtn: byId('videoBtn'),
       timerToggle: byId('timerToggle'),
       cameraSelect: byId('cameraSelect'),
@@ -126,7 +129,12 @@ class PhotoBooth {
     this.dom.retakeBtn.addEventListener('click', () => this._reset());
     this.dom.downloadBtn.addEventListener('click', () => this._onDownloadPressed());
     this.dom.downloadPhotoBtn.addEventListener('click', () => this._onDownloadPhotoPressed());
+    this.dom.gifBtn.addEventListener('click', () => this._onDownloadGifPressed());
     this.dom.videoBtn.addEventListener('click', () => this._onDownloadVideoPressed());
+    this.dom.captionInput.addEventListener('input', (event) => {
+      this.caption = event.target.value.trim();
+      this.filmStrip.setCaption(this.caption);
+    });
     this.dom.filterSelect.addEventListener('change', (e) => this._onFilterChanged(e.target.value));
     this.dom.designSelect.addEventListener('change', (e) => this._setDesign(e.target.value));
     this.dom.stickerTray.addEventListener('click', (event) => {
@@ -355,6 +363,7 @@ class PhotoBooth {
     const hasShots = this.shots.length > 0;
     const canDownloadStrip = this.layout && this.shots.length === this.layout.totalShots;
     this.dom.downloadPhotoBtn.disabled = !hasShots;
+    this.dom.gifBtn.disabled = !canDownloadStrip || this.shots.length < 2;
     this.dom.videoBtn.disabled = !canDownloadStrip || this.shots.length < 2;
     this.dom.downloadBtn.disabled = !canDownloadStrip;
     this.dom.downloadBtn.classList.toggle('ready', Boolean(canDownloadStrip));
@@ -409,11 +418,18 @@ class PhotoBooth {
   }
 
   /** @private */
-  _onDownloadPhotoPressed() {
-    const dataUrl = this.shots.length > 0
-      ? this.shots[this.shots.length - 1]
-      : this.processor.captureFrame(this.dom.video, this.dom.captureCanvas, this.currentFilter);
-    this._triggerDownload(dataUrl, `sticker-studio-photo-${this.shots.length || 1}.jpg`);
+  async _onDownloadPhotoPressed() {
+    try {
+      const dataUrl = this.shots.length > 0
+        ? this.shots[this.shots.length - 1]
+        : this.processor.captureFrame(this.dom.video, this.dom.captureCanvas, this.currentFilter);
+      const downloadUrl = this.caption
+        ? await this.processor.buildCaptionedPhoto(dataUrl, this.dom.captureCanvas, this.caption)
+        : dataUrl;
+      this._triggerDownload(downloadUrl, `sticker-studio-photo-${this.shots.length || 1}.jpg`);
+    } catch (err) {
+      this.dom.statusLine.textContent = `Could not download image: ${err.message}`;
+    }
   }
 
   /** @private */
@@ -434,6 +450,27 @@ class PhotoBooth {
       this.dom.statusLine.textContent = `Your photo strip ${extension.toUpperCase()} video is ready.`;
     } catch (err) {
       this.dom.statusLine.textContent = `Could not create video: ${err.message}`;
+    } finally {
+      this._updateExportButtons();
+    }
+  }
+
+  /** @private */
+  async _onDownloadGifPressed() {
+    if (this.shots.length !== this.layout.totalShots || this.shots.length < 2) {
+      this.dom.statusLine.textContent = 'Complete your photo session before downloading its GIF.';
+      return;
+    }
+
+    try {
+      this.dom.gifBtn.disabled = true;
+      this.dom.statusLine.textContent = 'Building your photo GIF...';
+      const blob = await this.processor.buildGif(this.shots, this._getStripOptions());
+      const objectUrl = URL.createObjectURL(blob);
+      this._triggerDownload(objectUrl, 'sticker-studio-photos.gif', true);
+      this.dom.statusLine.textContent = 'Your photo GIF is ready.';
+    } catch (err) {
+      this.dom.statusLine.textContent = `Could not create photo GIF: ${err.message}`;
     } finally {
       this._updateExportButtons();
     }
@@ -463,7 +500,8 @@ class PhotoBooth {
       bestShotIndex: this.bestShotIndex,
       designId: this.designId,
       stickers: this.stickers,
-      footerText: this.filmStrip.dateEl.textContent,
+      caption: this.caption,
+      footerText: this.filmStrip.completedDate,
       layoutId: this.layout.id,
     };
   }

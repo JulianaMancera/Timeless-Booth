@@ -142,6 +142,7 @@ class VintageProcessor {
    *   bestShotIndex?: number,
    *   designId?: string,
    *   stickers?: {emoji: string, x: number, y: number}[][],
+   *   caption?: string,
    *   footerText?: string,
    *   layoutId?: string
    * }} options
@@ -154,12 +155,32 @@ class VintageProcessor {
   }
 
   /**
+   * Adds an optional caption to a single downloaded photo.
+   * @param {string} shotDataUrl
+   * @param {HTMLCanvasElement} canvas
+   * @param {string} caption
+   * @returns {Promise<string>}
+   */
+  async buildCaptionedPhoto(shotDataUrl, canvas, caption) {
+    const image = await this._loadImage(shotDataUrl);
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, width, height);
+    this._drawCaption(ctx, caption, 0, 0, width, height);
+    return canvas.toDataURL('image/jpeg', 0.92);
+  }
+
+  /**
    * Records the complete strip animation using the best browser-supported video format.
    * @param {string[]} shotDataUrls
    * @param {{
    *   bestShotIndex?: number,
    *   designId?: string,
    *   stickers?: {emoji: string, x: number, y: number}[][],
+   *   caption?: string,
    *   footerText?: string,
    *   layoutId?: string
    * }} options
@@ -234,6 +255,52 @@ class VintageProcessor {
     }
   }
 
+  /**
+   * Builds an animated GIF that highlights each photo in turn.
+   * @param {string[]} shotDataUrls
+   * @param {object} options
+   * @returns {Promise<Blob>}
+   */
+  async buildGif(shotDataUrls, options = {}) {
+    if (typeof window.GIF === 'undefined') {
+      throw new Error('GIF export is unavailable because the GIF library did not load.');
+    }
+    const loadedFrames = await Promise.all(shotDataUrls.map((src) => this._loadImage(src)));
+    const frameW = loadedFrames[0].naturalWidth || loadedFrames[0].width;
+    const frameH = loadedFrames[0].naturalHeight || loadedFrames[0].height;
+    const scale = Math.min(1, 640 / frameW, 640 / frameH);
+    const width = Math.max(1, Math.round(frameW * scale));
+    const height = Math.max(1, Math.round(frameH * scale));
+
+    return new Promise((resolve, reject) => {
+      const gif = new window.GIF({
+        workers: 2,
+        quality: 8,
+        width,
+        height,
+        workerScript: 'js/gif.worker.js',
+      });
+      loadedFrames.forEach((image, index) => {
+        const frameCanvas = document.createElement('canvas');
+        frameCanvas.width = width;
+        frameCanvas.height = height;
+        const ctx = frameCanvas.getContext('2d');
+        this._drawImageCover(ctx, image, 0, 0, width, height);
+        (options.stickers?.[index] || []).forEach((sticker) => {
+          ctx.font = `${Math.max(24, Math.round(width * 0.08))}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(sticker.emoji, sticker.x * width, sticker.y * height);
+        });
+        if (options.caption) this._drawCaption(ctx, options.caption, 0, 0, width, height);
+        gif.addFrame(frameCanvas, { copy: true, delay: 650 });
+      });
+      gif.on('finished', resolve);
+      gif.on('abort', () => reject(new Error('GIF export was interrupted.')));
+      gif.render();
+    });
+  }
+
   /** @private */
   _getStripGeometry(imageCount, options = {}) {
     const layout = LAYOUT_PRESETS.find((item) => item.id === options.layoutId);
@@ -287,6 +354,11 @@ class VintageProcessor {
           if ((x / 16 + y / 16) % 2 === 0) ctx.fillRect(x, y, 8, 8);
         }
       }
+    } else if (design.pattern === 'cat') {
+      for (let y = 34; y < stripH; y += 64) {
+        this._drawPawPrint(ctx, 15, y, 0.8, design.accent);
+        this._drawPawPrint(ctx, stripW - 15, y + 28, 0.8, design.accent);
+      }
     } else {
       for (let y = 16; y < stripH; y += 24) {
         ctx.fillRect(0, y, stripW, 2);
@@ -326,6 +398,17 @@ class VintageProcessor {
       ctx.setLineDash(design.pattern === 'star' ? [9, 6] : []);
       ctx.strokeRect(x, y, frameW, frameH);
       ctx.setLineDash([]);
+      if (design.pattern === 'cat') {
+        ctx.fillStyle = design.accent;
+        [x + 18, x + frameW - 18].forEach((centerX) => {
+          ctx.beginPath();
+          ctx.moveTo(centerX - 10, y + 5);
+          ctx.lineTo(centerX - 5, y - 8);
+          ctx.lineTo(centerX + 4, y + 5);
+          ctx.closePath();
+          ctx.fill();
+        });
+      }
       if (design.pattern === 'dot') {
         ctx.lineWidth = 2;
         ctx.strokeStyle = design.frame;
@@ -365,10 +448,49 @@ class VintageProcessor {
     ctx.fillStyle = '#30243b';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 22px Nunito, sans-serif';
-    ctx.fillText(options.footerText || 'STICKER STUDIO', stripW / 2, footerY + footerH / 2, stripW - 24);
+    const footerCenterY = footerY + footerH / 2;
+    ctx.font = 'bold 19px Nunito, sans-serif';
+    ctx.fillText('STICKER STUDIO', stripW / 2, footerCenterY - 19, stripW - 24);
+    if (options.footerText) {
+      ctx.font = 'bold 12px Nunito, sans-serif';
+      ctx.fillText(options.footerText, stripW / 2, footerCenterY, stripW - 24);
+    }
+    if (options.caption) {
+      ctx.font = 'bold 13px Nunito, sans-serif';
+      ctx.fillText(options.caption, stripW / 2, footerCenterY + 20, stripW - 24);
+    }
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
+  }
+
+  /** @private */
+  _drawCaption(ctx, caption, x, y, width, height) {
+    const barHeight = Math.max(26, Math.min(44, height * 0.12));
+    const barY = y + height - barHeight - 8;
+    ctx.fillStyle = 'rgba(48, 36, 59, 0.72)';
+    ctx.fillRect(x + 8, barY, width - 16, barHeight);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.max(14, Math.round(barHeight * 0.48))}px Nunito, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(caption, x + width / 2, barY + barHeight / 2, width - 28);
+  }
+
+  /** @private */
+  _drawPawPrint(ctx, x, y, scale, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = color;
+    [[-6, -4, 3], [0, -7, 3], [6, -4, 3]].forEach(([dx, dy, radius]) => {
+      ctx.beginPath();
+      ctx.arc(dx, dy, radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.beginPath();
+    ctx.ellipse(0, 3, 6, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 
   /** @private */
