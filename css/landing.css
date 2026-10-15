@@ -222,7 +222,7 @@
   grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   justify-content: center;
   gap: 14px;
-  align-content: center;
+  align-content: start; /* FIX: was center */
 }
 
 .layout-card {
@@ -256,16 +256,18 @@
   width: 100%;
   max-width: 1100px;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
-  align-items: center;
+  align-items: start; /* FIX: was center */
   gap: 32px;
   margin: 24px auto 0;
 }
 
 .layouts-stage > .layout-grid {
   width: 100%;
+  align-self: start; /* FIX: keeps the cards pinned to the top */
 }
 
 .layouts-stage .hero-strip-preview {
+  align-self: start;
   width: 100%;
   margin-top: 0;
 }
