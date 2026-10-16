@@ -565,6 +565,8 @@ class PhotoBooth {
     preview.style.position = 'fixed';
     preview.style.left = `${event.clientX}px`;
     preview.style.top = `${event.clientY}px`;
+    preview.style.pointerEvents = 'none';
+    preview.style.zIndex = '9999';
     document.body.appendChild(preview);
     button.style.opacity = '0.35';
     this.activeStickerDrag = {

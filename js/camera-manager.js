@@ -32,11 +32,14 @@ class CameraManager {
     this.stop();
 
     const videoConstraints = {
-      facingMode: 'user',
       width: { ideal: 1280 },
       height: { ideal: 960 },
     };
-    if (deviceId) videoConstraints.deviceId = { exact: deviceId };
+    if (deviceId) {
+      videoConstraints.deviceId = { exact: deviceId };
+    } else {
+      videoConstraints.facingMode = { ideal: 'user' };
+    }
 
     this.stream = await navigator.mediaDevices.getUserMedia({
       video: videoConstraints,
